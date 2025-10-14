@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider;
+  }
+
+  .badge-high-risk {
+    @apply border-rose-500/40 bg-rose-500/10 text-rose-200;
+  }
+
+  .badge-medium-risk {
+    @apply border-amber-500/40 bg-amber-500/10 text-amber-200;
+  }
+
+  .badge-low-risk {
+    @apply border-emerald-500/40 bg-emerald-500/10 text-emerald-200;
+  }
+
+  .badge-event {
+    @apply border-slate-500/40 bg-slate-500/10 text-slate-200;
+  }
+}

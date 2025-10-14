@@ -13,6 +13,29 @@ uvicorn app.main:app --reload
 
 Open http://127.0.0.1:8000 to access the analyst dashboard.
 
+## Frontend Showcase Dashboard (Next.js)
+
+The repository now includes a standalone marketing-grade dashboard built with Next.js + Tailwind in `frontend/`. It talks to the FastAPI backend through the public REST surface, so no server code changes are required.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The app expects the API to be reachable at `http://localhost:8000` by default. To point at a different backend, set `NEXT_PUBLIC_API_BASE_URL` before running `npm run dev`:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=https://shield.example.com npm run dev
+```
+
+Key experiences showcased:
+
+- Live ingestion form that posts to `/api/v1/intake`
+- Real-time event stream over `/api/v1/events/stream`
+- Case drill-down that hydrates via `/api/v1/cases/{intake_id}`
+- One-click sharing package generation via `/api/v1/share`
+
 ### Sample Intake
 
 ```bash

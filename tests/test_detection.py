@@ -26,4 +26,4 @@ def test_detection_scores_with_heuristics_only():
     assert 0.0 <= composite <= 1.0
     assert classification in {"low-risk", "medium-risk", "high-risk"}
     assert breakdown.linguistic_score >= 0
-    assert breakdown.behavioral_score >= 0
+    assert breakdown.behavioral_score > 0
