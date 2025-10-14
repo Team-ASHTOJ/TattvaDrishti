@@ -15,18 +15,15 @@ class Settings(BaseSettings):
         default_factory=lambda: ["USA", "EU", "IN", "AUS"]
     )
     watermark_secret: str = Field("default-watermark-seed", env="WATERMARK_SEED")
-    hf_model_name: str = Field(
-        "roberta-large-openai-detector", env="HF_MODEL_NAME"
-    )
-    hf_tokenizer_name: str = Field(
-        "roberta-large-openai-detector", env="HF_TOKENIZER_NAME"
-    )
+    hf_model_name: str = Field("disabled", env="HF_MODEL_NAME")
+    hf_tokenizer_name: str = Field("disabled", env="HF_TOKENIZER_NAME")
     hf_device: int = Field(-1, env="HF_DEVICE")  # -1 CPU, >=0 GPU id
     hf_score_threshold: float = Field(0.6, env="HF_SCORE_THRESHOLD")
     ollama_model: str = Field("gpt-oss:20b", env="OLLAMA_MODEL")
     ollama_enabled: bool = Field(False, env="OLLAMA_ENABLED")
-    ollama_timeout: int = Field(15, env="OLLAMA_TIMEOUT")
-    ollama_prompt_chars: int = Field(2400, env="OLLAMA_PROMPT_CHARS")
+    ollama_timeout: int = Field(30, env="OLLAMA_TIMEOUT")
+    ollama_prompt_chars: int = Field(2000, env="OLLAMA_PROMPT_CHARS")
+    ollama_timeout_ceiling: int = Field(90, env="OLLAMA_TIMEOUT_CEILING")
 
     class Config:
         env_file = ".env"

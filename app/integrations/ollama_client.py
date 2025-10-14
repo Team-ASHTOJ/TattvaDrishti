@@ -37,13 +37,19 @@ class OllamaClient:
             f"{snippet}"
             "```"
         )
+        base_timeout = max(3, int(self.settings.ollama_timeout))
+        ceiling = max(base_timeout, int(self.settings.ollama_timeout_ceiling))
+        adaptive_timeout = min(
+            ceiling,
+            base_timeout + max(0, len(snippet) - 400) / 400,
+        )
         try:
             result = subprocess.run(
                 ["ollama", "run", self.settings.ollama_model],
                 capture_output=True,
                 input=prompt,
                 text=True,
-                timeout=self.settings.ollama_timeout,
+                timeout=adaptive_timeout,
                 check=False,
             )
         except FileNotFoundError:
@@ -51,9 +57,13 @@ class OllamaClient:
             return None
         except subprocess.TimeoutExpired:
             logger.warning(
-                "Ollama model '%s' timed out after %ss",
+                "Ollama model '%s' timed out after %ss "
+                "(prompt chars=%s, base timeout=%s, ceiling=%s)",
                 self.settings.ollama_model,
-                self.settings.ollama_timeout,
+                adaptive_timeout,
+                len(snippet),
+                base_timeout,
+                ceiling,
             )
             return None
 

@@ -14,9 +14,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata = {
-  title: "LLM MalignOps Shield Dashboard",
+  title: "TattvaDrishti Dashboard",
   description:
-    "Showcase dashboard for the MalignOps Shield API: analyse narratives, stream pipeline events, and assemble sharing packages.",
+    "Showcase dashboard for the TattvaDrishti API: analyse narratives, stream pipeline events, and assemble sharing packages.",
 };
 
 export default function RootLayout({ children }) {

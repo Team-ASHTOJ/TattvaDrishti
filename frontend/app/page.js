@@ -235,7 +235,7 @@ export default function HomePage() {
               <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl space-y-4">
                   <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-300">
-                    LLM MalignOps Shield
+                    TattvaDrishti Shield
                   </p>
                   <h1 className="text-4xl font-semibold leading-tight text-white md:text-5xl">
                     Proactive tradecraft dashboard for{" "}
