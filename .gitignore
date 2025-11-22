@@ -89,7 +89,7 @@ instance/
 
 # Data and model artifacts (keep samples/ and data/intake_example.json checked in)
 data/
-models/
+# models/
 *.h5
 *.pt
 *.pth
