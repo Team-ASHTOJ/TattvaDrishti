@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -35,11 +35,44 @@ class ProvenancePayload(BaseModel):
     validation_notes: List[str]
 
 
+class GNNCluster(BaseModel):
+    cluster_id: str
+    score: float
+    actors: List[str] = Field(default_factory=list)
+    narratives: List[str] = Field(default_factory=list)
+    content: List[str] = Field(default_factory=list)
+
+
+class CoordinationAlert(BaseModel):
+    actor: str
+    peer_actors: List[str] = Field(default_factory=list)
+    shared_tags: List[str] = Field(default_factory=list)
+    platforms: List[str] = Field(default_factory=list)
+    risk: float
+
+
+class PropagationChain(BaseModel):
+    path: List[str] = Field(default_factory=list)
+    likelihood: float
+    platforms: List[str] = Field(default_factory=list)
+
+
+class CommunitySnapshot(BaseModel):
+    actors: List[str] = Field(default_factory=list)
+    content: List[str] = Field(default_factory=list)
+    narratives: List[str] = Field(default_factory=list)
+    regions: List[str] = Field(default_factory=list)
+    gnn_score: float = 0.0
+
+
 class GraphSummary(BaseModel):
     node_count: int
     edge_count: int
     high_risk_actors: List[str]
-    communities: List[Dict[str, List[str]]]
+    communities: List[CommunitySnapshot]
+    gnn_clusters: List[GNNCluster] = Field(default_factory=list)
+    coordination_alerts: List[CoordinationAlert] = Field(default_factory=list)
+    propagation_chains: List[PropagationChain] = Field(default_factory=list)
 
 
 class DetectionResult(BaseModel):
@@ -50,6 +83,21 @@ class DetectionResult(BaseModel):
     breakdown: DetectionBreakdown
     provenance: ProvenancePayload
     graph_summary: GraphSummary
+
+
+class ThreatIntelFeed(BaseModel):
+    generated_at: datetime
+    graph_summary: GraphSummary
+    indicators: List[str]
+    dataset_fingerprint: str
+
+
+class SIEMCorrelationPayload(BaseModel):
+    generated_at: datetime
+    alerts: List[CoordinationAlert]
+    propagation_chains: List[PropagationChain]
+    correlation_keys: List[str]
+    node_count: int
 
 
 class SharingRequest(BaseModel):

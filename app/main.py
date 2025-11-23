@@ -6,7 +6,14 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 from .config import Settings, get_settings
-from .schemas import ContentIntake, DetectionResult, SharingPackage, SharingRequest
+from .schemas import (
+    ContentIntake,
+    DetectionResult,
+    SharingPackage,
+    SharingRequest,
+    SIEMCorrelationPayload,
+    ThreatIntelFeed,
+)
 from .services.orchestrator import AnalysisOrchestrator
 from .storage.database import Database
 
@@ -69,6 +76,16 @@ async def request_sharing_package(request_payload: SharingRequest) -> SharingPac
         return orchestrator.build_sharing_package(request_payload)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
+
+
+@app.get("/api/v1/integrations/threat-intel", response_model=ThreatIntelFeed)
+async def threat_intel_feed() -> ThreatIntelFeed:
+    return orchestrator.graph.threat_intel_feed()
+
+
+@app.get("/api/v1/integrations/siem", response_model=SIEMCorrelationPayload)
+async def siem_feed() -> SIEMCorrelationPayload:
+    return orchestrator.graph.siem_payload()
 
 
 @app.get("/api/v1/events/stream")

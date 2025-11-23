@@ -263,7 +263,8 @@ export default function HomePage() {
                       Endpoints
                     </p>
                     <p className="mt-1 font-mono text-xs text-slate-400/80">
-                      /api/v1/intake · /api/v1/cases/:id · /api/v1/share
+                      /api/v1/intake · /api/v1/cases/:id · /api/v1/share ·
+                      /api/v1/integrations/threat-intel · /api/v1/integrations/siem
                     </p>
                   </div>
                 </div>

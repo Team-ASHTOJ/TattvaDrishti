@@ -35,6 +35,15 @@ export default function CaseDetail({
   const stylometric = breakdown.stylometric_anomalies || {};
   const heuristics = breakdown.heuristics || [];
   const graphCommunities = graphSummary.communities;
+  const gnnClusters = Array.isArray(graphSummary.gnn_clusters)
+    ? graphSummary.gnn_clusters
+    : [];
+  const coordinationAlerts = Array.isArray(graphSummary.coordination_alerts)
+    ? graphSummary.coordination_alerts
+    : [];
+  const propagationChains = Array.isArray(graphSummary.propagation_chains)
+    ? graphSummary.propagation_chains
+    : [];
   const communitySummaries = useMemo(() => {
     const communities = Array.isArray(graphCommunities) ? graphCommunities : [];
     return communities.map((community) => {
@@ -234,13 +243,14 @@ export default function CaseDetail({
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
           Graph intelligence snapshot
         </h3>
-        <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm text-slate-200">
+        <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm text-slate-200 md:grid-cols-4">
           <StatCard label="Nodes" value={graphSummary.node_count} />
           <StatCard label="Edges" value={graphSummary.edge_count} />
           <StatCard
             label="Communities"
             value={Array.isArray(graphSummary.communities) ? graphSummary.communities.length : 0}
           />
+          <StatCard label="GNN clusters" value={gnnClusters.length} />
         </div>
         <div className="mt-4 space-y-2 text-xs text-slate-400">
           {Array.isArray(graphSummary.communities) && graphSummary.communities.length ? (
@@ -275,6 +285,138 @@ export default function CaseDetail({
             </div>
           )}
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-slate-950/60 px-5 py-5">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+          GNN cluster detections
+        </h3>
+        {gnnClusters.length ? (
+          <div className="mt-4 space-y-3 text-xs text-slate-300">
+            {gnnClusters.map((cluster) => (
+              <article
+                key={cluster.cluster_id}
+                className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3"
+              >
+                <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-slate-500">
+                  <span>{cluster.cluster_id}</span>
+                  <span className="text-emerald-300">{(cluster.score ?? 0).toFixed(2)}</span>
+                </div>
+                <div className="mt-3 space-y-1 text-[13px]">
+                  {cluster.actors?.length ? (
+                    <p>
+                      <span className="text-slate-500">Actors:</span>
+                      <span className="ml-2 font-mono text-emerald-200">
+                        {cluster.actors.join(", ")}
+                      </span>
+                    </p>
+                  ) : null}
+                  {cluster.narratives?.length ? (
+                    <p>
+                      <span className="text-slate-500">Narratives:</span>
+                      <span className="ml-2 font-mono text-cyan-200">
+                        {cluster.narratives.join(", ")}
+                      </span>
+                    </p>
+                  ) : null}
+                  {cluster.content?.length ? (
+                    <p>
+                      <span className="text-slate-500">Content:</span>
+                      <span className="ml-2 font-mono text-amber-200">
+                        {cluster.content.join(", ")}
+                      </span>
+                    </p>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-slate-500">
+            No GNN-driven communities have been scored yet for this case.
+          </p>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-slate-950/60 px-5 py-5">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+          Cross-platform coordination alerts
+        </h3>
+        {coordinationAlerts.length ? (
+          <div className="mt-4 space-y-3 text-xs text-slate-300">
+            {coordinationAlerts.map((alert, index) => (
+              <article
+                key={`${alert.actor}-${index}`}
+                className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-4"
+              >
+                <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-slate-500">
+                  <span>{alert.actor}</span>
+                  <span className="text-rose-200">Risk {(alert.risk ?? 0).toFixed(2)}</span>
+                </div>
+                <div className="mt-3 space-y-1 text-[13px]">
+                  {alert.peer_actors?.length ? (
+                    <p>
+                      <span className="text-slate-500">Peers:</span>
+                      <span className="ml-2 font-mono text-emerald-200">
+                        {alert.peer_actors.join(", ")}
+                      </span>
+                    </p>
+                  ) : null}
+                  {alert.shared_tags?.length ? (
+                    <p>
+                      <span className="text-slate-500">Shared narratives:</span>
+                      <span className="ml-2 font-mono text-cyan-200">
+                        {alert.shared_tags.join(", ")}
+                      </span>
+                    </p>
+                  ) : null}
+                  {alert.platforms?.length ? (
+                    <p>
+                      <span className="text-slate-500">Platforms:</span>
+                      <span className="ml-2 font-mono text-amber-200">
+                        {alert.platforms.join(", ")}
+                      </span>
+                    </p>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-slate-500">
+            No coordination signals flagged between actors for this intake.
+          </p>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-slate-950/60 px-5 py-5">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+          Propagation chains
+        </h3>
+        {propagationChains.length ? (
+          <div className="mt-4 space-y-3 text-xs text-slate-300">
+            {propagationChains.map((chain, index) => (
+              <article
+                key={`${chain.path?.join("-") || "chain"}-${index}`}
+                className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-4"
+              >
+                <p className="font-mono text-[12px] text-emerald-200">
+                  {(chain.path || []).join(" → ") || "No path computed"}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[12px] text-slate-400">
+                  <span>Likelihood {(chain.likelihood ?? 0).toFixed(2)}</span>
+                  <span>
+                    Platforms: <span className="font-mono text-amber-200">{(chain.platforms || []).join(", ") || "n/a"}</span>
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-slate-500">
+            Propagation modelling has not surfaced any cross-actor handoffs.
+          </p>
+        )}
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-slate-950/60 px-5 py-5">
