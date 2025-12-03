@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import Speedometer from "./Speedometer";
 
 const riskBadgeClasses = {
   "high-risk":
@@ -125,11 +126,13 @@ export default function CaseDetail({
             <p className="text-xs uppercase tracking-wide text-slate-400">
               Composite score
             </p>
-            <p className="mt-1 text-3xl font-semibold text-emerald-300">
-              {typeof caseData.composite_score === "number"
-                ? `${Math.round(caseData.composite_score * 100)}%`
-                : "n/a"}
-            </p>
+            <div className="mt-2">
+              {typeof caseData.composite_score === "number" ? (
+                <Speedometer value={caseData.composite_score} />
+              ) : (
+                <p className="text-slate-400 text-sm">n/a</p>
+              )}
+            </div>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
