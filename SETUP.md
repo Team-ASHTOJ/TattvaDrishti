@@ -56,20 +56,36 @@
 
 ### Running the Application
 
+**Option 1: Using Run Scripts (Recommended - No manual activation needed!)**
+
+**Terminal 1 - Backend**
+```bash
+cd TattvaDrishti
+./run_backend.sh
+```
+✅ Backend running at http://localhost:8000
+
+**Terminal 2 - Frontend**
+```bash
+cd TattvaDrishti
+./run_frontend.sh
+```
+✅ Frontend running at http://localhost:3000
+
+**Option 2: Manual Activation**
+
 **Terminal 1 - Backend**
 ```bash
 cd TattvaDrishti
 source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
 uvicorn app.main:app --reload
 ```
-✅ Backend running at http://localhost:8000
 
 **Terminal 2 - Frontend**
 ```bash
 cd TattvaDrishti/frontend
 npm run dev
 ```
-✅ Frontend running at http://localhost:3000
 
 ### Common Issues
 
