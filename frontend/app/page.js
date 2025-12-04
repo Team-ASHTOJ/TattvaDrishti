@@ -7,6 +7,7 @@ import EventsFeed from "@/components/EventsFeed";
 import CaseTable from "@/components/CaseTable";
 import CaseDetail from "@/components/CaseDetail";
 import Toast from "@/components/Toast";
+import FederatedBlockchain from "@/components/FederatedBlockchain";
 import {
   submitIntake,
   fetchCase,
@@ -319,6 +320,10 @@ export default function HomePage() {
               sharePending={sharePending}
               shareOutput={shareOutput}
             />
+          </div>
+
+          <div className="mt-12">
+            <FederatedBlockchain />
           </div>
         </section>
       </main>

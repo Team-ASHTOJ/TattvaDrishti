@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     ollama_timeout: int = Field(30, env="OLLAMA_TIMEOUT")
     ollama_prompt_chars: int = Field(2000, env="OLLAMA_PROMPT_CHARS")
     ollama_timeout_ceiling: int = Field(90, env="OLLAMA_TIMEOUT_CEILING")
+    
+    # Federated Blockchain Configuration
+    federated_encryption_key: str = Field("LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM=", env="BLOCK_ENCRYPTION_KEY")
+    federated_nodes: str = Field("http://localhost:8000", env="FEDERATED_NODES")
+    node_url: str = Field("http://localhost:8000", env="NODE_URL")
 
     class Config:
         env_file = ".env"

@@ -17,12 +17,18 @@ from .schemas import (
 )
 from .services.orchestrator import AnalysisOrchestrator
 from .storage.database import Database
+from .federated.manager import LedgerManager
+from .federated.node import Node
+from .federated.ledger import Block
+from .federated.crypto import encrypt_data, decrypt_data
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name)
 template_engine = Jinja2Templates(directory="templates")
 orchestrator = AnalysisOrchestrator()
 database = Database()
+ledger = LedgerManager()
+node = Node()
 
 app.add_middleware(
     CORSMiddleware,
@@ -106,3 +112,112 @@ class FingerprintCheckPayload(BaseModel):
 async def fingerprint_check(payload: FingerprintCheckPayload):
     matches = orchestrator.check_fingerprint(payload.text)
     return {"matches": matches}
+
+
+# ==================== Federated Blockchain Routes ====================
+
+@app.post("/api/v1/federated/add_block")
+async def add_federated_block(payload: dict):
+    """Add a new block to the federated ledger and broadcast to peers."""
+    chain = ledger.get_chain()
+    prev_block = chain[-1]
+    
+    encrypted_data = encrypt_data(payload)
+    new_block = Block.create_new(
+        index=len(chain),
+        data_encrypted=encrypted_data,
+        previous_hash=prev_block.hash
+    )
+    
+    ledger.save_block(new_block)
+    node.broadcast_block(new_block)
+    
+    from dataclasses import asdict
+    return {"message": "Block added to federated ledger", "block": asdict(new_block)}
+
+
+@app.post("/api/v1/federated/receive_block")
+async def receive_federated_block(block_data: dict):
+    """Receive and validate a block from a peer node."""
+    chain = ledger.get_chain()
+    prev_block = chain[-1]
+    
+    incoming_block = Block(
+        index=block_data["index"],
+        timestamp=block_data["timestamp"],
+        data_encrypted=block_data["data_encrypted"],
+        previous_hash=block_data["previous_hash"],
+        public_key=block_data["public_key"],
+        hash=block_data["hash"],
+        signature=block_data["signature"]
+    )
+    
+    if not ledger.validate_block(incoming_block, prev_block):
+        raise HTTPException(status_code=400, detail="Block validation failed")
+    
+    ledger.save_block(incoming_block)
+    return {"message": "Block accepted"}
+
+
+@app.get("/api/v1/federated/chain")
+async def get_federated_chain():
+    """Retrieve the entire federated blockchain."""
+    from dataclasses import asdict
+    chain = ledger.get_chain()
+    return {"chain": [asdict(block) for block in chain], "length": len(chain)}
+
+
+@app.get("/api/v1/federated/validate")
+async def validate_federated_chain():
+    """Validate the local chain and check network consensus."""
+    import requests
+    
+    chain = ledger.get_chain()
+    self_valid = ledger.validate_chain(chain)
+    
+    results = {}
+    tampered = []
+    
+    for node_url in node.nodes:
+        if node_url != node.my_url:
+            try:
+                resp = requests.get(f"{node_url}/api/v1/federated/validate_local", timeout=2)
+                is_valid = resp.json().get("valid", False)
+                results[node_url] = is_valid
+                if not is_valid:
+                    tampered.append(node_url)
+            except Exception:
+                results[node_url] = False
+                tampered.append(node_url)
+    
+    network_valid = self_valid and all(results.values())
+    
+    return {
+        "self_valid": self_valid,
+        "nodes": results,
+        "network_valid": network_valid,
+        "tampered_nodes": tampered,
+        "chain_length": len(chain)
+    }
+
+
+@app.get("/api/v1/federated/validate_local")
+async def validate_local_chain():
+    """Local chain validation endpoint for peer nodes."""
+    chain = ledger.get_chain()
+    return {"valid": ledger.validate_chain(chain)}
+
+
+@app.get("/api/v1/federated/decrypt_block/{block_index}")
+async def decrypt_federated_block(block_index: int):
+    """Decrypt a specific block's data (requires proper authorization in production)."""
+    chain = ledger.get_chain()
+    if block_index >= len(chain) or block_index < 0:
+        raise HTTPException(status_code=404, detail="Block not found")
+    
+    block = chain[block_index]
+    try:
+        decrypted = decrypt_data(block.data_encrypted)
+        return {"block_index": block_index, "data": decrypted}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Decryption failed: {str(e)}")

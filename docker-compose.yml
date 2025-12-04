@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  node1:
+    build: .
+    container_name: tattva_node1
+    environment:
+      NODE_URL: "http://node1:8000"
+      FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
+      BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
+      APP_SECRET: "federated-secret-node1"
+      DATABASE_URL: "sqlite:///./data/app_node1.db"
+    volumes:
+      - ./data/node1:/app/data
+    ports:
+      - "8001:8000"
+    networks:
+      - federated_chain
+
+  node2:
+    build: .
+    container_name: tattva_node2
+    environment:
+      NODE_URL: "http://node2:8000"
+      FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
+      BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
+      APP_SECRET: "federated-secret-node2"
+      DATABASE_URL: "sqlite:///./data/app_node2.db"
+    volumes:
+      - ./data/node2:/app/data
+    ports:
+      - "8002:8000"
+    networks:
+      - federated_chain
+
+  node3:
+    build: .
+    container_name: tattva_node3
+    environment:
+      NODE_URL: "http://node3:8000"
+      FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
+      BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
+      APP_SECRET: "federated-secret-node3"
+      DATABASE_URL: "sqlite:///./data/app_node3.db"
+    volumes:
+      - ./data/node3:/app/data
+    ports:
+      - "8003:8000"
+    networks:
+      - federated_chain
+
+  node4:
+    build: .
+    container_name: tattva_node4
+    environment:
+      NODE_URL: "http://node4:8000"
+      FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
+      BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
+      APP_SECRET: "federated-secret-node4"
+      DATABASE_URL: "sqlite:///./data/app_node4.db"
+    volumes:
+      - ./data/node4:/app/data
+    ports:
+      - "8004:8000"
+    networks:
+      - federated_chain
+
+networks:
+  federated_chain:
+    driver: bridge

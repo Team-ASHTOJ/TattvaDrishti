@@ -12,6 +12,15 @@ from ..models.watermark import WatermarkEngine
 from ..schemas import ContentIntake, DetectionResult, SharingPackage, SharingRequest
 from ..storage.database import Database
 
+try:
+    from ..federated.manager import LedgerManager
+    from ..federated.node import Node
+    from ..federated.ledger import Block
+    from ..federated.crypto import encrypt_data
+    FEDERATED_ENABLED = True
+except ImportError:
+    FEDERATED_ENABLED = False
+
 
 class AnalysisOrchestrator:
     def __init__(self) -> None:
@@ -21,6 +30,18 @@ class AnalysisOrchestrator:
         self.sharing = SharingEngine()
         self.db = Database()
         self._event_queue: "asyncio.Queue[Dict[str, Any]]" = asyncio.Queue(maxsize=200)
+        
+        # Initialize federated ledger if available
+        if FEDERATED_ENABLED:
+            try:
+                self.ledger = LedgerManager()
+                self.node = Node()
+            except Exception:
+                self.ledger = None
+                self.node = None
+        else:
+            self.ledger = None
+            self.node = None
 
     async def process_intake(self, intake: ContentIntake) -> DetectionResult:
         return await run_in_threadpool(self._process_sync, intake)
@@ -112,6 +133,36 @@ class AnalysisOrchestrator:
             actor="system",
             payload={"destination": request.destination, "policy": policy_tags},
         )
+        
+        # Publish to federated blockchain if enabled
+        if self.ledger and self.node:
+            try:
+                chain = self.ledger.get_chain()
+                prev_block = chain[-1]
+                
+                federated_payload = {
+                    "type": "intelligence_sharing",
+                    "package_id": package.package_id,
+                    "destination": request.destination,
+                    "classification": record["classification"],
+                    "composite_score": record["composite_score"],
+                    "timestamp": package.created_at.isoformat(),
+                    "policy_tags": policy_tags
+                }
+                
+                encrypted_data = encrypt_data(federated_payload)
+                new_block = Block.create_new(
+                    index=len(chain),
+                    data_encrypted=encrypted_data,
+                    previous_hash=prev_block.hash
+                )
+                
+                self.ledger.save_block(new_block)
+                self.node.broadcast_block(new_block)
+            except Exception as e:
+                # Log error but don't fail the sharing request
+                print(f"Failed to publish to blockchain: {e}")
+        
         return package
 
     def _emit_event(self, event: Dict[str, Any]) -> None:
