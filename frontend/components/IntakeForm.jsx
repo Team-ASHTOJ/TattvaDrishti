@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const minCharacters = 20;
 
@@ -10,6 +10,93 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
   const [region, setRegion] = useState("");
   const [actorId, setActorId] = useState("");
   const [tags, setTags] = useState("");
+  const recognitionRef = useRef(null);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(true);
+  const [speechError, setSpeechError] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+      recognitionRef.current = null;
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = language?.trim() || "en";
+    recognition.onresult = (event) => {
+      let transcriptChunk = "";
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        if (result.isFinal && result[0]?.transcript) {
+          transcriptChunk += result[0].transcript;
+        }
+      }
+      if (transcriptChunk) {
+        const cleaned = transcriptChunk.replace(/\s+/g, " ").trim();
+        setText((previous) => {
+          const prefix = previous && !previous.endsWith(" ") ? `${previous} ` : previous || "";
+          return `${prefix || ""}${cleaned}`.trim();
+        });
+      }
+    };
+    recognition.onerror = (event) => {
+      setIsListening(false);
+      setSpeechError(
+        event.error === "not-allowed"
+          ? "Microphone permission denied. Please allow access to dictate."
+          : "Speech capture interrupted. Please try again."
+      );
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    recognitionRef.current = recognition;
+    setSpeechSupported(true);
+
+    return () => {
+      recognition.onresult = null;
+      recognition.onerror = null;
+      recognition.onend = null;
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = language?.trim() || "en";
+    }
+  }, [language]);
+
+  const stopDictation = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+  };
+
+  const handleToggleDictation = () => {
+    if (!recognitionRef.current) {
+      setSpeechError("Speech capture is unavailable in this browser.");
+      return;
+    }
+    if (isListening) {
+      stopDictation();
+      return;
+    }
+    setSpeechError("");
+    try {
+      recognitionRef.current.lang = language?.trim() || "en";
+      recognitionRef.current.start();
+      setIsListening(true);
+    } catch (error) {
+      setSpeechError("Unable to access the microphone. Please try again.");
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -39,6 +126,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
     };
     const success = await onSubmit(payload);
     if (success) {
+      stopDictation();
       setText("");
       setLanguage("en");
       setSource("");
@@ -46,6 +134,7 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
       setRegion("");
       setActorId("");
       setTags("");
+      setSpeechError("");
     }
   };
 
@@ -64,12 +153,31 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
         </p>
       </header>
       <div>
-        <label
-          htmlFor="payload-text"
-          className="text-sm font-semibold text-slate-200"
-        >
-          Narrative payload
-        </label>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <label
+            htmlFor="payload-text"
+            className="text-sm font-semibold text-slate-200"
+          >
+            Narrative payload
+          </label>
+          <button
+            type="button"
+            onClick={handleToggleDictation}
+            disabled={!speechSupported || isSubmitting}
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-wide transition focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-40 ${
+              isListening
+                ? "border-rose-300/70 bg-rose-500/10 text-rose-200"
+                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isListening ? "bg-rose-300 animate-pulse" : "bg-emerald-300"
+              }`}
+            />
+            {isListening ? "Stop dictation" : "Use voice input"}
+          </button>
+        </div>
         <textarea
           id="payload-text"
           name="text"
@@ -84,6 +192,14 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
           Minimum {minCharacters} characters. The orchestrator runs heuristics,
           watermark checks, and graph ingestion automatically.
         </p>
+        {speechError && (
+          <p className="mt-2 text-xs text-rose-300">{speechError}</p>
+        )}
+        {!speechSupported && !speechError && (
+          <p className="mt-2 text-xs text-slate-500">
+            Voice dictation is unavailable in this browser.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 text-sm">
