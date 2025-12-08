@@ -80,10 +80,10 @@ export default function HeatmapLeaflet() {
 			map.boxZoom.enable();
 			map.keyboard.enable();
 
-			// Basemap tiles for context
-			const tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-				attribution: "&copy; OpenStreetMap contributors",
-				maxZoom: 18,
+			// Basemap tiles for context (Carto Positron for English labels)
+			const tileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+				maxZoom: 19,
 				noWrap: true,
 			}).addTo(map);
 
