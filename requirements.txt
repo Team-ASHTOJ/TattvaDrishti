@@ -39,7 +39,7 @@ pytest==7.4.4
 # Server-Sent Events for real-time updates
 sse-starlette==1.6.5
 peft
-
+python-multipart==0.0.20
 
 
 # fastapi==0.104.1

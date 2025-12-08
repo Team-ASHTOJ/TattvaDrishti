@@ -152,7 +152,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">🤖 AI Detection</span>
+              <span className="block"> AI Detection</span>
             </button>
 
             {/* Nudity */}
@@ -164,7 +164,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">🚫 Nudity</span>
+              <span className="block"> Nudity</span>
             </button>
 
             {/* Gore */}
@@ -176,7 +176,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">🩸 Gore</span>
+              <span className="block"> Gore</span>
             </button>
 
             {/* Offensive */}
@@ -188,7 +188,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">⚠️ Offensive</span>
+              <span className="block"> Offensive</span>
             </button>
 
             {/* Self-Harm */}
@@ -200,7 +200,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">💔 Self-Harm</span>
+              <span className="block"> Self-Harm</span>
             </button>
 
             {/* Text */}
@@ -212,7 +212,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">📝 Text</span>
+              <span className="block"> Text</span>
             </button>
 
             {/* QR Code */}
@@ -224,7 +224,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">📱 QR Code</span>
+              <span className="block"> QR Code</span>
             </button>
 
             {/* Properties */}
@@ -236,7 +236,7 @@ export default function ImageAnalyzer() {
                   : 'border-white/10 bg-slate-800/50 text-slate-400 hover:border-white/20'
               }`}
             >
-              <span className="block">ℹ️ Properties</span>
+              <span className="block"> Properties</span>
             </button>
           </div>
         </div>
