@@ -20,7 +20,7 @@ export default function RadarChart({ breakdown = {} }) {
     value: Math.min(Math.max(signal.value, 0), 1),
   }));
 
-  const size = 280;
+  const size = 420;
   const center = size / 2;
   const radius = 90;
   const levels = 5;
