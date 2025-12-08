@@ -540,7 +540,6 @@ export default function CaseDetail({
               <option value="EU">EU</option>
               <option value="IN">IN</option>
               <option value="AUS">AUS</option>
-              <option value="FiveEyes">FiveEyes</option>
             </select>
           </label>
 

@@ -6,6 +6,7 @@ services:
     container_name: tattva_node1
     environment:
       NODE_URL: "http://node1:8000"
+      MAIN_API_URL: "http://host.docker.internal:8000"
       FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
       BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
       APP_SECRET: "federated-secret-node1"
@@ -22,6 +23,7 @@ services:
     container_name: tattva_node2
     environment:
       NODE_URL: "http://node2:8000"
+      MAIN_API_URL: "http://host.docker.internal:8000"
       FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
       BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
       APP_SECRET: "federated-secret-node2"
@@ -38,6 +40,7 @@ services:
     container_name: tattva_node3
     environment:
       NODE_URL: "http://node3:8000"
+      MAIN_API_URL: "http://host.docker.internal:8000"
       FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
       BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
       APP_SECRET: "federated-secret-node3"
@@ -54,6 +57,7 @@ services:
     container_name: tattva_node4
     environment:
       NODE_URL: "http://node4:8000"
+      MAIN_API_URL: "http://host.docker.internal:8000"
       FEDERATED_NODES: "http://node1:8000,http://node2:8000,http://node3:8000,http://node4:8000"
       BLOCK_ENCRYPTION_KEY: "LULSnIHlBjTSfWDfqVl0kTV9qXUFN0EpGbynAB_34TM="
       APP_SECRET: "federated-secret-node4"

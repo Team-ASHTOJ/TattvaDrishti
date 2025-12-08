@@ -1,5 +1,13 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
+// Map destinations to node base URLs; fall back to API_BASE_URL if unset
+export const DESTINATION_NODE_URLS = {
+  USA: process.env.NEXT_PUBLIC_NODE1_URL || "http://localhost:8001",
+  EU: process.env.NEXT_PUBLIC_NODE2_URL || "http://localhost:8002",
+  IN: process.env.NEXT_PUBLIC_NODE3_URL || "http://localhost:8003",
+  AUS: process.env.NEXT_PUBLIC_NODE4_URL || "http://localhost:8004",
+};
+
 const headers = {
   "Content-Type": "application/json",
 };
@@ -27,6 +35,7 @@ export async function fetchCase(intakeId) {
 }
 
 export async function requestSharingPackage(payload) {
+  // Always use main API for sharing - it has the case data
   const res = await fetch(`${API_BASE_URL}/api/v1/share`, {
     method: "POST",
     headers,

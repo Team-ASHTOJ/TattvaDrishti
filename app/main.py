@@ -43,6 +43,17 @@ app.add_middleware(
 app.include_router(heatmap_router)
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Ensure database is initialized on startup."""
+    # Database init is already called in Database.__init__, but we verify it here
+    # to surface any errors early
+    try:
+        database._initialise()
+    except Exception as e:
+        print(f"Database initialization warning: {e}")
+
+
 def get_app_settings() -> Settings:
     return settings
 
@@ -103,7 +114,7 @@ async def get_case(intake_id: str) -> DetectionResult:
 @app.post("/api/v1/share", response_model=SharingPackage)
 async def request_sharing_package(request_payload: SharingRequest) -> SharingPackage:
     try:
-        return orchestrator.build_sharing_package(request_payload)
+        return await orchestrator.build_sharing_package(request_payload)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
 

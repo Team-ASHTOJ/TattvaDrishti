@@ -1,8 +1,10 @@
 import asyncio
+import os
 from datetime import datetime
-from typing import Any, AsyncGenerator, Dict
+from typing import Any, AsyncGenerator, Dict, Optional
 from uuid import uuid4
 
+import httpx
 from fastapi.concurrency import run_in_threadpool
 
 from ..models.detection import DetectorEngine
@@ -106,8 +108,36 @@ class AnalysisOrchestrator:
     def check_fingerprint(self, text: str) -> list[Dict[str, Any]]:
         return self.db.check_fingerprint(text)
 
-    def build_sharing_package(self, request: SharingRequest) -> SharingPackage:
+    async def _fetch_case_from_main_api(self, intake_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch case data from main API if not found locally (for federated nodes)."""
+        main_api_url = os.getenv("MAIN_API_URL", "http://localhost:8000")
+        # Don't fetch from self
+        if main_api_url == os.getenv("NODE_URL"):
+            return None
+        
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{main_api_url}/api/v1/cases/{intake_id}")
+                if response.status_code == 200:
+                    data = response.json()
+                    # Convert DetectionResult to the format expected by build_sharing_package
+                    return {
+                        "classification": data.get("classification"),
+                        "composite_score": data.get("composite_score"),
+                        "created_at": data.get("submitted_at"),
+                        "metadata": data.get("metadata", {}),
+                    }
+        except Exception as e:
+            print(f"Failed to fetch case from main API: {e}")
+        return None
+
+    async def build_sharing_package(self, request: SharingRequest) -> SharingPackage:
         record = self.db.fetch_case(request.intake_id)
+        
+        # If not found locally, try fetching from main API (for federated nodes)
+        if not record:
+            record = await self._fetch_case_from_main_api(request.intake_id)
+        
         if not record:
             raise ValueError("Unknown intake reference.")
         payload = {
