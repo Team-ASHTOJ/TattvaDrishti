@@ -158,7 +158,7 @@ export default function WorldHeatmapLeaflet() {
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 shadow-2xl shadow-black/30">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">World Heatmap</h3>
+        <h3 className="text-lg font-semibold text-white">Regional User Demographics</h3>
         <p className="text-xs text-slate-400">Blue → Green → Yellow → Red</p>
       </div>
       <div
