@@ -51,57 +51,96 @@ class AIDetector:
         self._load_models()
 
     def _load_models(self) -> None:
-        """Load both AI detection models with error handling and fallbacks."""
+        """Load both AI detection models. If the family model fails, keep AI/Human alive."""
+        # --- 1. Load AI vs Human Detector (LoRA) ---
         try:
-            # --- 1. Load AI vs Human Detector (LoRA) ---
             logger.info(
                 "⏳ Loading AI vs Human detector (LoRA): %s",
                 self._ai_human_adapter_id,
             )
-            
-            # Load the Peft Config to find the base model
-            config = PeftConfig.from_pretrained(self._ai_human_adapter_id)
-            
+
+            # Handle subfolder checkpoints explicitly (e.g., repo/checkpoint-12345)
+            adapter_id = self._ai_human_adapter_id
+            repo_id = adapter_id
+            subfolder = None
+            if "/checkpoint" in adapter_id:
+                repo_id, suffix = adapter_id.split("/checkpoint", 1)
+                subfolder = f"checkpoint{suffix}"
+
+            # Some checkpoints store adapter files one level up; try subfolder-first, then parent
+            try:
+                config = PeftConfig.from_pretrained(repo_id, subfolder=subfolder)
+            except Exception as exc:
+                logger.warning(
+                    "Adapter config not found at %s (subfolder=%s, %s). Trying parent repo...",
+                    repo_id,
+                    subfolder,
+                    exc,
+                )
+                config = PeftConfig.from_pretrained(repo_id)
+                subfolder = None
+
             # Load Base Model
             base_model = AutoModelForSequenceClassification.from_pretrained(
                 config.base_model_name_or_path,
-                num_labels=2 # Ensure binary classification head
+                num_labels=2,  # Binary classification head
             )
-            
+
             # Load LoRA Adapter
-            self._ai_human_model = PeftModel.from_pretrained(base_model, self._ai_human_adapter_id)
+            self._ai_human_model = PeftModel.from_pretrained(
+                base_model, repo_id, subfolder=subfolder
+            )
             self._ai_human_model.to(self._device)
             self._ai_human_model.eval()
-            
+
             # Smart Tokenizer Loading (Fallback to base if adapter has no tokenizer)
             try:
-                self._ai_human_tokenizer = AutoTokenizer.from_pretrained(self._ai_human_adapter_id)
+                self._ai_human_tokenizer = AutoTokenizer.from_pretrained(
+                    repo_id, subfolder=subfolder
+                )
             except Exception:
-                logger.warning("Tokenizer not found in adapter, loading from base model...")
-                self._ai_human_tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path)
+                logger.warning(
+                    "Tokenizer not found in adapter, loading from base model..."
+                )
+                self._ai_human_tokenizer = AutoTokenizer.from_pretrained(
+                    config.base_model_name_or_path
+                )
 
-            # --- 2. Load Model Family Detector (Full Fine-Tune) ---
-            logger.info("⏳ Loading Model Family detector (Balanced)...")
-            family_model_id = "XOmar/model_family_detector_deberta_v3_balanced"
-            
-            self._family_model = AutoModelForSequenceClassification.from_pretrained(family_model_id)
-            self._family_model.to(self._device)
-            self._family_model.eval()
-            
-            self._family_tokenizer = AutoTokenizer.from_pretrained(family_model_id)
-
-            logger.info("✅ All AI detection models loaded successfully.")
+            logger.info("✅ AI vs Human detector loaded.")
 
         except Exception as exc:
-            logger.error(f"❌ Critical Error loading models: {exc}")
-            # Ensure we don't leave half-loaded states
+            logger.error(f"❌ Failed to load AI/Human detector: {exc}")
             self._ai_human_model = None
+            self._ai_human_tokenizer = None
+            return
+
+        # --- 2. Load Model Family Detector (optional) ---
+        try:
+            logger.info("⏳ Loading Model Family detector (Balanced)...")
+            family_model_id = "XOmar/model_family_detector_deberta_v3_balanced"
+
+            self._family_model = AutoModelForSequenceClassification.from_pretrained(
+                family_model_id
+            )
+            self._family_model.to(self._device)
+            self._family_model.eval()
+
+            self._family_tokenizer = AutoTokenizer.from_pretrained(family_model_id)
+
+            logger.info("✅ Model Family detector loaded.")
+
+        except Exception as exc:
+            logger.warning(
+                "⚠️ Model Family detector unavailable; continuing with AI/Human only: %s",
+                exc,
+            )
             self._family_model = None
+            self._family_tokenizer = None
 
     @property
     def available(self) -> bool:
         """Check if models are loaded and ready."""
-        return self._ai_human_model is not None and self._family_model is not None
+        return self._ai_human_model is not None and self._ai_human_tokenizer is not None
 
     def detect_ai_human(self, text: str) -> Optional[Dict[str, Any]]:
         """
@@ -201,8 +240,8 @@ class AIDetector:
         ai_result = self.detect_ai_human(text)
         
         family_result = None
-        # Only burn compute on Family detection if it's actually AI
-        if ai_result and ai_result.get("is_ai", False):
+        # Only burn compute on Family detection if it's actually AI and the model is present
+        if ai_result and ai_result.get("is_ai", False) and self._family_model:
             family_result = self.detect_model_family(text)
         
         return ai_result, family_result
