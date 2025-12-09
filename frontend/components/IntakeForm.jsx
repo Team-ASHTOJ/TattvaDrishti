@@ -2,6 +2,48 @@ import { useEffect, useRef, useState } from "react";
 
 const minCharacters = 20;
 
+const CITIES = [
+  "Agartala", "Aizawl", "Ajmer", "Akola", "Aligarh", "Prayagraj (Allahabad) ", "Alwar", "Ambala", "Amravati", "Amritsar",
+  "Anantapur", "Ankleshwar", "Aurangabad", "Avadi", "Abu Dhabi", "Accra", "Addis Ababa", "Adelaide", "Agra", "Ahmedabad",
+  "Algiers", "Amman", "Amsterdam", "Ankara", "Antananarivo", "Asunción", "Athens", "Atlanta", "Auckland", "Austin",
+  "Bahadurgarh", "Ballari (Bellary)", "Bareilly", "Bathinda", "Belagavi (Belgaum)", "Bharatpur", "Bharuch", "Bhavnagar",
+  "Bhilai", "Bhilwara", "Bhiwandi", "Bhiwani", "Bhubaneswar", "Bhuj", "Bidar", "Bilaspur", "Bokaro Steel City", "Bulandshahr",
+  "Baghdad", "Baku", "Baltimore", "Bamako", "Bandung", "Bangalore (Bengaluru)", "Bangkok", "Barcelona", "Basel", "Baton Rouge",
+  "Beijing", "Beirut", "Belgrade", "Belo Horizonte", "Benghazi", "Berlin", "Bern", "Bhopal", "Birmingham", "Bogotá",
+  "Boston", "Brasília", "Bratislava", "Brazzaville", "Brisbane", "Brussels", "Bucharest", "Budapest", "Buenos Aires",
+  "Chandrapur", "Chapra", "Coimbatore", "Cuttack", "Cairo", "Calgary", "Canberra", "Cape Town", "Caracas", "Casablanca",
+  "Cebu", "Chandigarh", "Changsha", "Chennai", "Chicago", "Chittagong", "Chongqing", "Colombo", "Columbus", "Copenhagen", "Cordoba",
+  "Davanagere", "Dehradun", "Dewas", "Dhanbad", "Dharamsala", "Dibrugarh", "Durg", "Dallas", "Dakar", "Dalian",
+  "Dar es Salaam", "Delhi", "Denver", "Detroit", "Dhaka", "Doha", "Dongguan", "Douala", "Dubai", "Dublin", "Durban",
+  "Edinburgh", "Edmonton", "Ekurhuleni", "Faridabad", "Farrukhabad", "Firozabad", "Faisalabad", "Florence", "Fort Worth",
+  "Frankfurt", "Fukuoka", "Gandhinagar", "Gaya", "Ghaziabad", "Gorakhpur", "Gulbarga (Kalaburagi)", "Guntur", "Gurugram",
+  "Gaborone", "Gdansk", "Geneva", "Genoa", "Glasgow", "Goa", "Guadalajara", "Guangzhou", "Guatemala City", "Gujranwala",
+  "Haifa", "Hamburg", "Hangzhou", "Hanoi", "Harare", "Havana", "Helsinki", "Ho Chi Minh City", "Hong Kong", "Houston",
+  "Hyderabad (India)", "Ibadan", "Incheon", "Indore", "Istanbul", "Izmir", "Jabalpur", "Jalandhar", "Jalgaon", "Jammu",
+  "Jamnagar", "Jamshedpur", "Jhansi", "Jodhpur", "Junagadh", "Jakarta", "Jeddah", "Johannesburg", "Kabul", "Kampala",
+  "Kanpur", "Karachi", "Kathmandu", "Kazan", "Kigali", "Kingston", "Kinshasa", "Kobe", "Kolkata", "Kuala Lumpur",
+  "Kunming", "Kuwait City", "Kyiv", "Kyoto", "Lagos", "Lahore", "Lanzhou", "Las Vegas", "Leeds", "Lima", "Lisbon",
+  "London", "Los Angeles", "Louisville", "Luanda", "Lucknow", "Lusaka", "Lyon", "Madrid", "Mahé", "Makassar",
+  "Managua", "Manama", "Manaus", "Manila", "Maputo", "Marrakesh", "Marseille", "Mashhad", "Mazatlán", "Medan",
+  "Medellín", "Melbourne", "Memphis", "Mexico City", "Miami", "Milan", "Milwaukee", "Minsk", "Mississauga", "Mogadishu",
+  "Monrovia", "Monterrey", "Montevideo", "Montreal", "Moscow", "Mumbai", "Munich", "Nairobi", "Nagoya", "Nagpur",
+  "Nanjing", "Nanning", "Nagercoil", "Nanded", "Nashik", "Nellore", "Noida", "North Lakhimpur", "Naples", "Nashville",
+  "New Delhi", "New Orleans", "New York", "Newark", "Nice", "Ningbo", "Nizhny Novgorod", "Nouakchott", "Novosibirsk",
+  "Oklahoma City", "Omaha", "Osaka", "Oslo", "Ottawa", "Panama City", "Paris", "Patna", "Perth", "Philadelphia",
+  "Phnom Penh", "Phoenix", "Pittsburgh", "Port Elizabeth", "Port Harcourt", "Port Louis", "Port Moresby", "Portland",
+  "Porto", "Prague", "Pretoria", "Pune", "Qingdao", "Quebec City", "Quito", "Raebareli", "Raichur", "Raipur",
+  "Rajahmundry", "Rajkot", "Ranchi", "Ratlam", "Rewa", "Rohtak", "Rourkela", "Rabat", "Raleigh", "Recife",
+  "Reykjavik", "Richmond", "Rio de Janeiro", "Riyadh", "Rome", "Rosario", "Rotterdam", "Sacramento", "Saint Petersburg",
+  "Salt Lake City", "San Antonio", "San Diego", "San Francisco", "San José (Costa Rica)", "San Jose (USA)", "San Juan",
+  "San Salvador", "Sana'a", "Santiago", "Santo Domingo", "São Paulo", "Seattle", "Sendai", "Seoul", "Seville",
+  "Shanghai", "Sharjah", "Shenzhen", "Shijiazhuang", "Singapore", "Skopje", "Sofia", "St. Louis", "Stockholm", "Stuttgart",
+  "Surat", "Suva", "Sydney", "Taipei", "Tallinn", "Tangier", "Tampa", "Tashkent", "Tbilisi", "Tehran", "Tel Aviv",
+  "Tianjin", "Tijuana", "Tilburg", "Tokyo", "Toronto", "Tripoli", "Tunis", "Ulaanbaatar", "Valencia", "Vancouver",
+  "Varanasi", "Venice", "Vienna", "Vientiane", "Vilnius", "Virginia Beach", "Warsaw", "Washington D.C.", "Wellington",
+  "Wenzhou", "Winnipeg", "Wuhan", "Wuxi", "Warangal", "Xiamen", "Xi'an", "Yaoundé", "Yerevan", "Yokohama", "Yamunanagar",
+  "Zirakpur", "Zagreb", "Zaragoza", "Zhengzhou", "Zibo", "Zurich"
+];
+
 export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }) {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("en");
@@ -10,7 +52,10 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
   const [region, setRegion] = useState("");
   const [actorId, setActorId] = useState("");
   const [tags, setTags] = useState("");
+  const [showRegionSuggestions, setShowRegionSuggestions] = useState(false);
+  const [filteredCities, setFilteredCities] = useState([]);
   const recognitionRef = useRef(null);
+  const regionInputRef = useRef(null);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [speechError, setSpeechError] = useState("");
@@ -72,6 +117,36 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
       recognitionRef.current.lang = language?.trim() || "en";
     }
   }, [language]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (regionInputRef.current && !regionInputRef.current.contains(event.target)) {
+        setShowRegionSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleRegionChange = (value) => {
+    setRegion(value);
+    if (value.trim()) {
+      const filtered = CITIES.filter(city =>
+        city.toLowerCase().includes(value.toLowerCase())
+      ).slice(0, 10); // Limit to 10 suggestions
+      setFilteredCities(filtered);
+      setShowRegionSuggestions(filtered.length > 0);
+    } else {
+      setFilteredCities([]);
+      setShowRegionSuggestions(false);
+    }
+  };
+
+  const selectCity = (city) => {
+    setRegion(city);
+    setShowRegionSuggestions(false);
+    setFilteredCities([]);
+  };
 
   const stopDictation = () => {
     if (recognitionRef.current && isListening) {
@@ -242,14 +317,36 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
           />
         </InputField>
         <InputField label="Region (city/district)">
-          <input
-            id="payload-region"
-            value={region}
-            placeholder="Enter city or district (required)"
-            required
-            onChange={(event) => setRegion(event.target.value)}
-            className="input"
-          />
+          <div ref={regionInputRef} className="relative">
+            <input
+              id="payload-region"
+              value={region}
+              placeholder="Start typing city name..."
+              required
+              onChange={(event) => handleRegionChange(event.target.value)}
+              onFocus={() => {
+                if (region.trim() && filteredCities.length > 0) {
+                  setShowRegionSuggestions(true);
+                }
+              }}
+              className="input w-full"
+              autoComplete="off"
+            />
+            {showRegionSuggestions && filteredCities.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 backdrop-blur-sm shadow-xl">
+                {filteredCities.map((city, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => selectCity(city)}
+                    className="w-full px-4 py-2.5 text-left text-sm text-slate-200 hover:bg-emerald-500/20 hover:text-emerald-300 transition-colors first:rounded-t-lg last:rounded-b-lg border-b border-white/5 last:border-b-0"
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </InputField>
         <InputField label="Actor ID">
           <input
