@@ -12,6 +12,7 @@ import FederatedBlockchain from "@/components/FederatedBlockchain";
 import ImageAnalyzer from "@/components/ImageAnalyzer";
 import WorldHeatmapLeaflet from "@/components/WorldHeatmapLeaflet";
 import BlockchainGraph from "@/components/BlockchainGraph";
+import HopTraceMap from "@/components/HopTraceMap";
 import ThemeToggle from "@/components/ThemeToggle";
 import {
   submitIntake,
@@ -341,6 +342,7 @@ export default function HomePage() {
 
           <div className="mt-12 break-words">
             <BlockchainGraph />
+            <HopTraceMap />
           </div>
 
           <div className="mt-12 break-all">

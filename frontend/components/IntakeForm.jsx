@@ -49,6 +49,7 @@ export default function IntakeForm({
   isSubmitting,
   onValidationError,
   variant = "dark",
+  metadataLabelStyle = "normal",
 }) {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("en");
@@ -91,6 +92,7 @@ export default function IntakeForm({
     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
     : "border-emerald-400/40 bg-emerald-500/10 text-emerald-200";
   const statusTextClass = isLight ? "text-xs text-slate-500" : "text-xs text-slate-400";
+  const metadataLabelEmphasis = metadataLabelStyle === "bold" ? "bold" : "normal";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -302,7 +304,7 @@ export default function IntakeForm({
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 text-sm">
-        <InputField label="Language" variant={variant}>
+        <InputField label="Language" variant={variant} emphasis={metadataLabelEmphasis}>
           <input
             id="payload-language"
             value={language}
@@ -310,7 +312,7 @@ export default function IntakeForm({
             className={inputClass}
           />
         </InputField>
-        <InputField label="Source channel" variant={variant}>
+        <InputField label="Source channel" variant={variant} emphasis={metadataLabelEmphasis}>
           <input
             id="payload-source"
             value={source}
@@ -319,7 +321,7 @@ export default function IntakeForm({
             className={inputClass}
           />
         </InputField>
-        <InputField label="Analyst tags" variant={variant}>
+        <InputField label="Analyst tags" variant={variant} emphasis={metadataLabelEmphasis}>
           <input
             id="payload-tags"
             value={tags}
@@ -331,7 +333,7 @@ export default function IntakeForm({
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 text-sm">
-        <InputField label="Platform" variant={variant}>
+        <InputField label="Platform" variant={variant} emphasis={metadataLabelEmphasis}>
           <input
             id="payload-platform"
             value={platform}
@@ -340,7 +342,7 @@ export default function IntakeForm({
             className={inputClass}
           />
         </InputField>
-        <InputField label="Region (city/district)" variant={variant}>
+        <InputField label="Region" variant={variant} emphasis={metadataLabelEmphasis}>
           <div ref={regionInputRef} className="relative">
             <input
               id="payload-region"
@@ -372,7 +374,7 @@ export default function IntakeForm({
             )}
           </div>
         </InputField>
-        <InputField label="Actor ID" variant={variant}>
+        <InputField label="Actor ID" variant={variant} emphasis={metadataLabelEmphasis}>
           <input
             id="payload-actor"
             value={actorId}
@@ -414,8 +416,15 @@ export default function IntakeForm({
   );
 }
 
-function InputField({ label, children, variant = "dark" }) {
+function InputField({ label, children, variant = "dark", emphasis = "normal" }) {
   const isLight = variant === "light";
+  const baseColor = isLight ? "text-slate-500" : "text-slate-400";
+  const emphasisClass =
+    emphasis === "bold"
+      ? isLight
+        ? "text-slate-900 font-semibold"
+        : "text-white font-semibold"
+      : baseColor;
   return (
     <label
       className={`flex flex-col gap-2 ${
@@ -423,9 +432,7 @@ function InputField({ label, children, variant = "dark" }) {
       }`}
     >
       <span
-        className={`text-xs uppercase tracking-[0.3em] ${
-          isLight ? "text-slate-500" : "text-slate-400"
-        }`}
+        className={`text-xs uppercase tracking-[0.3em] ${emphasisClass}`}
       >
         {label}
       </span>

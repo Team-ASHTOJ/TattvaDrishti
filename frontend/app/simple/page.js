@@ -152,7 +152,7 @@ export default function SimpleDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-sky-50 text-slate-900">
-      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 pb-24">
+      <main className="mx-auto flex w-full max-w-[110rem] flex-col gap-10 px-4 py-10 pb-24 sm:px-6 lg:px-12">
         <header className="rounded-[32px] bg-white/90 p-8 shadow-2xl shadow-amber-100/60 ring-1 ring-amber-100">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
@@ -187,9 +187,6 @@ export default function SimpleDashboardPage() {
           <div className="space-y-6">
             <div className="rounded-[32px] bg-white/90 p-4 shadow-xl shadow-emerald-100 ring-1 ring-emerald-100/60 sm:p-6">
               <div className="flex flex-col gap-1 border-b border-emerald-100 pb-4">
-                <p className="text-xs font-bold uppercase tracking-[0.4em] text-emerald-500">
-                  Step 1
-                </p>
                 <h2 className="text-2xl font-semibold text-slate-900">
                   Submit a narrative
                 </h2>
@@ -205,6 +202,7 @@ export default function SimpleDashboardPage() {
                     setToast({ message, tone: "error" })
                   }
                   variant="light"
+                  metadataLabelStyle="bold"
                 />
               </div>
             </div>
@@ -338,7 +336,7 @@ function ResultList({ items, selectedId, onSelect }) {
 function CaseOverview({ caseData, submission }) {
   if (!caseData) {
     return (
-      <section className="rounded-[32px] border border-dashed border-slate-200 bg-white/70 p-6 text-center text-sm text-slate-500 shadow-sm">
+      <section className="rounded-[32px] border border-dashed border-slate-200 bg-white/70 p-6 text-center text-base font-semibold text-slate-600 shadow-sm">
         Choose any result above to see the simplified explanation with highlights.
       </section>
     );
@@ -369,14 +367,14 @@ function CaseOverview({ caseData, submission }) {
     "Narrative body unavailable for this case.";
 
   return (
-    <section className="rounded-[32px] bg-white p-6 shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100">
+    <section className="rounded-[32px] bg-white p-8 text-base shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Selected case</p>
-          <h2 className="mt-1 text-2xl font-semibold text-slate-900">
+          <p className="text-sm uppercase tracking-[0.35em] text-slate-500">Selected case</p>
+          <h2 className="mt-1 text-3xl font-semibold text-slate-900">
             {caseData.classification || "Awaiting classification"}
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-slate-600">
             Intake ID:{" "}
             <span className="font-mono text-[11px] text-slate-600">
               {caseData.intake_id}
@@ -384,12 +382,12 @@ function CaseOverview({ caseData, submission }) {
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Composite score</p>
-          <div className={`mt-2 inline-flex items-center gap-3 rounded-full px-4 py-2 text-lg font-semibold ${risk.badgeBg} ${risk.text}`}>
+          <p className="text-sm uppercase tracking-[0.35em] text-slate-500">Composite score</p>
+          <div className={`mt-2 inline-flex items-center gap-3 rounded-full px-5 py-2 text-2xl font-semibold ${risk.badgeBg} ${risk.text}`}>
             {score}
             <span className="text-xs font-semibold uppercase tracking-[0.3em]">{risk.label}</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-sm text-slate-600">
             {caseData.submitted_at
               ? formatTimestamp(caseData.submitted_at)
               : "Timestamp unavailable"}
@@ -397,64 +395,64 @@ function CaseOverview({ caseData, submission }) {
         </div>
       </header>
 
-      <div className="mt-5 space-y-4 text-sm text-slate-700">
-        <section className="rounded-3xl bg-emerald-50/80 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 mb-2">
+      <div className="mt-5 space-y-5 text-base text-slate-700">
+        <section className="rounded-3xl bg-emerald-50/80 px-6 py-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-600 mb-3">
             Quick summary
           </p>
-          <p className="leading-relaxed text-slate-800">{summaryText}</p>
+          <p className="text-lg leading-relaxed text-slate-900">{summaryText}</p>
         </section>
 
         {caseData.decision_reason && (
-          <section className="rounded-3xl bg-white px-5 py-4 shadow-inner shadow-emerald-100">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 mb-2">
+          <section className="rounded-3xl bg-white px-6 py-5 shadow-inner shadow-emerald-100">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-600 mb-3">
               Why this decision
             </p>
-            <p className="text-sm leading-relaxed text-slate-800">
+            <p className="text-base leading-relaxed text-slate-800">
               {caseData.decision_reason}
             </p>
           </section>
         )}
 
-        <section className="rounded-3xl bg-slate-50 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 mb-2">
+        <section className="rounded-3xl bg-slate-50 px-6 py-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600 mb-3">
             Narrative text
           </p>
-          <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+          <p className="text-base text-slate-900 whitespace-pre-wrap leading-relaxed">
             {narrativeText}
           </p>
         </section>
 
-        <section className="rounded-3xl bg-sky-50 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-600 mb-2">
+        <section className="rounded-3xl bg-sky-50 px-6 py-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600 mb-3">
             Key signals
           </p>
           {heuristics.length ? (
-            <ul className="list-disc space-y-1 pl-4 text-sm text-slate-800">
+            <ul className="list-disc space-y-1 pl-4 text-base text-slate-800">
               {heuristics.map((heuristic) => (
                 <li key={heuristic}>{heuristic}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-slate-500">No heuristics were flagged.</p>
+            <p className="text-sm text-slate-500">No heuristics were flagged.</p>
           )}
         </section>
 
-        <section className="rounded-3xl bg-amber-50 px-5 py-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+        <section className="rounded-3xl bg-amber-50 px-6 py-5">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">
             Context provided
           </p>
           {metadataEntries.length ? (
-            <dl className="grid grid-cols-2 gap-3 text-xs text-slate-600">
+            <dl className="grid grid-cols-2 gap-4 text-sm text-slate-700">
               {metadataEntries.map(([key, value]) => (
                 <div key={key}>
-                  <dt className="uppercase tracking-[0.3em] text-slate-400">{key.replace(/_/g, " ")}</dt>
-                  <dd className="mt-1 text-slate-800">{String(value)}</dd>
+                  <dt className="text-xs uppercase tracking-[0.35em] text-slate-500">{key.replace(/_/g, " ")}</dt>
+                  <dd className="mt-1 text-base text-slate-900">{String(value)}</dd>
                 </div>
               ))}
             </dl>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-sm text-slate-500">
               No additional metadata was supplied with this submission.
             </p>
           )}
@@ -468,9 +466,6 @@ function ImageAnalyzerCard() {
   return (
     <section className="rounded-[32px] bg-white p-6 shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100">
       <header className="border-b border-slate-100 pb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.4em] text-purple-500">
-          Step 2
-        </p>
         <h2 className="mt-1 text-2xl font-semibold text-slate-900">
           Check supporting images
         </h2>
