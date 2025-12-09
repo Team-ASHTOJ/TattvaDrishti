@@ -333,13 +333,13 @@ export default function IntakeForm({ onSubmit, isSubmitting, onValidationError }
               autoComplete="off"
             />
             {showRegionSuggestions && filteredCities.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 backdrop-blur-sm shadow-xl">
+              <div className="absolute z-10 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-slate-300 dark:border-white/20 bg-white dark:bg-slate-900/95 backdrop-blur-sm shadow-xl">
                 {filteredCities.map((city, index) => (
                   <button
                     key={index}
                     type="button"
                     onClick={() => selectCity(city)}
-                    className="w-full px-4 py-2.5 text-left text-sm text-slate-200 hover:bg-emerald-500/20 hover:text-emerald-300 transition-colors first:rounded-t-lg last:rounded-b-lg border-b border-white/5 last:border-b-0"
+                    className="w-full px-4 py-2.5 text-left text-sm text-slate-800 dark:text-slate-200 hover:bg-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-300 transition-colors first:rounded-t-lg last:rounded-b-lg border-b border-slate-200 dark:border-white/5 last:border-b-0"
                   >
                     {city}
                   </button>
