@@ -16,6 +16,8 @@ export default function FederatedBlockchain() {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
   const [selectedNode, setSelectedNode] = useState("USA");
+  const [decryptedData, setDecryptedData] = useState({});
+  const [decrypting, setDecrypting] = useState({});
 
   const fetchChain = async () => {
     try {
@@ -59,6 +61,35 @@ export default function FederatedBlockchain() {
       setSyncResult({ error: error.message || "Sync failed" });
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const decryptBlock = async (blockIndex) => {
+    setDecrypting(prev => ({ ...prev, [blockIndex]: true }));
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/federated/decrypt_block/${blockIndex}`);
+      if (!res.ok) throw new Error("Failed to decrypt block");
+      const data = await res.json();
+      setDecryptedData(prev => ({ ...prev, [blockIndex]: data.data }));
+    } catch (error) {
+      console.error("Failed to decrypt block:", error);
+      setDecryptedData(prev => ({ ...prev, [blockIndex]: { error: "Decryption failed" } }));
+    } finally {
+      setDecrypting(prev => ({ ...prev, [blockIndex]: false }));
+    }
+  };
+
+  const toggleBlockData = (blockIndex) => {
+    if (decryptedData[blockIndex]) {
+      // Hide the data
+      setDecryptedData(prev => {
+        const newData = { ...prev };
+        delete newData[blockIndex];
+        return newData;
+      });
+    } else {
+      // Fetch and show the data
+      decryptBlock(blockIndex);
     }
   };
 
@@ -167,11 +198,24 @@ export default function FederatedBlockchain() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">Hash</p>
-                    <p className="mt-0.5 font-mono text-[10px] text-emerald-200">
-                      {block.hash.substring(0, 16)}...
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => toggleBlockData(block.index)}
+                      disabled={decrypting[block.index]}
+                      className="rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-1.5 text-xs font-semibold text-purple-300 hover:bg-purple-500/20 disabled:opacity-50 transition-colors"
+                    >
+                      {decrypting[block.index] 
+                        ? "Decrypting..." 
+                        : decryptedData[block.index] 
+                          ? "Hide Data" 
+                          : "View Data"}
+                    </button>
+                    <div className="text-right">
+                      <p className="text-xs uppercase tracking-wide text-slate-400">Hash</p>
+                      <p className="mt-0.5 font-mono text-[10px] text-emerald-200">
+                        {block.hash.substring(0, 16)}...
+                      </p>
+                    </div>
                   </div>
                 </div>
                 
@@ -195,6 +239,25 @@ export default function FederatedBlockchain() {
                     </span>
                   </div>
                 </div>
+
+                {/* Decrypted Data Section */}
+                {decryptedData[block.index] && (
+                  <div className="mt-4 rounded-lg border border-purple-500/30 bg-purple-500/5 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg className="h-4 w-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                      </svg>
+                      <h4 className="text-sm font-semibold text-purple-300">Decrypted Block Data</h4>
+                    </div>
+                    {decryptedData[block.index].error ? (
+                      <p className="text-xs text-rose-300">{decryptedData[block.index].error}</p>
+                    ) : (
+                      <pre className="max-h-64 overflow-auto rounded bg-slate-950/50 p-3 text-xs text-slate-300 font-mono whitespace-pre-wrap break-words">
+                        {JSON.stringify(decryptedData[block.index], null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                )}
               </article>
             ))
           )}
