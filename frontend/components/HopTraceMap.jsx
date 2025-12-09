@@ -1,91 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-const MOCK_HOP_URL = "https://mock-hop-router.example/api/v1/trace";
 
-const SAMPLE_HOPS = [
-  {
-    id: "IN-MUM-EDGE",
-    name: "Analyst Edge Relay",
-    city: "Mumbai, IN",
-    coords: [19.076, 72.8777],
-    ip: "10.14.33.2",
-    provider: "ISP Edge South Asia",
-    latency: 12,
-  },
-  {
-    id: "AE-DXB-HUB",
-    name: "Middle East Transit Hub",
-    city: "Dubai, AE",
-    coords: [25.2048, 55.2708],
-    ip: "172.18.40.5",
-    provider: "Subsea Gateway 5",
-    latency: 18,
-  },
-  {
-    id: "DE-FRA-IX",
-    name: "Frankfurt Threat Exchange",
-    city: "Frankfurt, DE",
-    coords: [50.1109, 8.6821],
-    ip: "192.168.240.12",
-    provider: "DE-CIX Backbone",
-    latency: 22,
-  },
-  {
-    id: "GB-LHR-STACK",
-    name: "London Fusion Stack",
-    city: "London, UK",
-    coords: [51.5072, -0.1276],
-    ip: "100.64.11.7",
-    provider: "Atlantic Bridge 3",
-    latency: 14,
-  },
-  {
-    id: "US-IAD-SOC",
-    name: "Target SOC Collector",
-    city: "Ashburn, US",
-    coords: [39.0438, -77.4874],
-    ip: "172.31.200.44",
-    provider: "US Gov Cloud",
-    latency: 18,
-  },
-];
+export default function HopTraceMap({ sharePackage = null }) {
+  // Parse share package to extract hop_trace if available
+  const packageHops = useMemo(() => {
+    if (!sharePackage) return null;
+    try {
+      const parsed = typeof sharePackage === 'string' ? JSON.parse(sharePackage) : sharePackage;
+      return parsed.hop_trace || null;
+    } catch {
+      return null;
+    }
+  }, [sharePackage]);
 
-function jitterLatency(latency) {
-  const jitter = Math.round(Math.random() * 8 - 4);
-  return Math.max(8, latency + jitter);
-}
-
-async function simulateHopTrace(message) {
-  // Pretend to reach a mock URL while keeping everything client-side.
-  console.info(`Mock hop trace POST ${MOCK_HOP_URL}`, { message });
-  await new Promise((resolve) =>
-    setTimeout(resolve, 800 + Math.random() * 600)
-  );
-  const hops = SAMPLE_HOPS.map((hop, index) => ({
-    ...hop,
-    latency: jitterLatency(hop.latency + index * 2),
-    note:
-      index === SAMPLE_HOPS.length - 1
-        ? "Payload delivered to receiving SOC."
-        : "Forwarding payload via encrypted tunnel.",
-  }));
-  const totalLatency = hops.reduce((acc, hop) => acc + hop.latency, 0);
-  return { hops, totalLatency };
-}
-
-export default function HopTraceMap() {
-  const [message, setMessage] = useState(
-    "Escalate malign narrative indicators to NATO partners."
-  );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [hops, setHops] = useState(() => SAMPLE_HOPS);
+  const [hops, setHops] = useState(() => packageHops || []);
   const [totalLatency, setTotalLatency] = useState(() =>
-    SAMPLE_HOPS.reduce((acc, hop) => acc + hop.latency, 0)
+    (packageHops || []).reduce((acc, hop) => acc + hop.latency, 0)
   );
-  const [lastTraceAt, setLastTraceAt] = useState(null);
+  const [lastTraceAt, setLastTraceAt] = useState(packageHops ? new Date() : null);
+  
+  // Update hops when sharePackage changes
+  useEffect(() => {
+    if (packageHops) {
+      setHops(packageHops);
+      setTotalLatency(packageHops.reduce((acc, hop) => acc + hop.latency, 0));
+      setLastTraceAt(new Date());
+    }
+  }, [packageHops]);
 
   const mapRef = useRef(null);
   const containerRef = useRef(null);
@@ -247,93 +190,33 @@ export default function HopTraceMap() {
     }
   }, [hops]);
 
-  const handleTrace = async (event) => {
-    event.preventDefault();
-    if (!message || message.trim().length < 12) {
-      setError("Message must contain at least 12 characters.");
-      return;
-    }
-    setError("");
-    setLoading(true);
-    try {
-      const { hops: tracedHops, totalLatency: total } = await simulateHopTrace(
-        message.trim()
-      );
-      setHops(tracedHops);
-      setTotalLatency(total);
-      setLastTraceAt(new Date());
-      setToastMessage("Trace completed via mock hop service.");
-    } catch (traceError) {
-      console.error("Trace simulation failed", traceError);
-      setError("Unable to reach the mock hop service.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [toastMessage, setToastMessage] = useState("");
-  useEffect(() => {
-    if (!toastMessage) return;
-    const timeout = setTimeout(() => setToastMessage(""), 3200);
-    return () => clearTimeout(timeout);
-  }, [toastMessage]);
+  if (!hops || hops.length === 0) {
+    return null;
+  }
 
   return (
     <section className="rounded-3xl border border-white/10 bg-slate-900/80 p-6 shadow-2xl shadow-black/40">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.4em] text-emerald-300">
-            Network trace lab
+            Intelligence sharing route
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-white">
-            Message hop tracker
+            Package hop trace
           </h2>
           <p className="text-sm text-slate-400">
-            Visualise the relay path a payload takes through the mesh before it
-            hits the receiving server. Data generated from a mock endpoint.
+            Visualise the relay path this intelligence package takes through the mesh before reaching the destination SOC.
           </p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-xs text-slate-400">
-          <p className="uppercase tracking-[0.3em] text-slate-500">Mock endpoint</p>
-          <p className="mt-2 font-mono text-[11px] text-emerald-200">
-            {MOCK_HOP_URL}
-          </p>
-        </div>
+        {lastTraceAt && (
+          <div className="rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-xs text-slate-400">
+            <p className="uppercase tracking-[0.3em] text-slate-500">Generated</p>
+            <p className="mt-2 font-mono text-[11px] text-emerald-200">
+              {lastTraceAt.toLocaleTimeString()}
+            </p>
+          </div>
+        )}
       </div>
-
-      <form
-        onSubmit={handleTrace}
-        className="mt-6 flex flex-col gap-3 md:flex-row md:items-end"
-      >
-        <label className="flex-1 text-sm text-slate-200">
-          <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Message payload
-          </span>
-          <textarea
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            rows={2}
-            className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-            placeholder="Describe the instruction delivered to the receiving SOC…"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex items-center justify-center rounded-2xl bg-emerald-400/90 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? "Tracing…" : "Trace hops"}
-        </button>
-      </form>
-      {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
-      {toastMessage && (
-        <p className="mt-3 text-sm text-emerald-300">{toastMessage}</p>
-      )}
-      {lastTraceAt && (
-        <p className="mt-1 text-xs text-slate-500">
-          Last traced at {lastTraceAt.toLocaleTimeString()}
-        </p>
-      )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_0.85fr]">
         <div

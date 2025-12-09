@@ -114,6 +114,17 @@ class SharingRequest(BaseModel):
     include_personal_data: bool = False
 
 
+class HopTrace(BaseModel):
+    id: str
+    name: str
+    city: str
+    coords: List[float]
+    ip: str
+    provider: str
+    latency: int
+    note: Optional[str] = None
+
+
 class SharingPackage(BaseModel):
     package_id: str
     created_at: datetime
@@ -121,3 +132,4 @@ class SharingPackage(BaseModel):
     policy_tags: List[str]
     payload: Dict[str, str]
     signature: str
+    hop_trace: Optional[List[HopTrace]] = None

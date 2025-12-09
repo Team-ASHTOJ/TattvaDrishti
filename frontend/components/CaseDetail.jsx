@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import RadarChart from "./RadarChart";
+import HopTraceMap from "./HopTraceMap";
 
 const riskBadgeClasses = {
   "high-risk":
@@ -580,9 +581,12 @@ export default function CaseDetail({
           </button>
         </form>
         {shareOutput ? (
-          <pre className="max-h-48 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-xs text-slate-300">
-            {shareOutput}
-          </pre>
+          <>
+            <pre className="max-h-48 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-xs text-slate-300">
+              {shareOutput}
+            </pre>
+            <HopTraceMap sharePackage={shareOutput} />
+          </>
         ) : null}
       </section>
     </aside>
