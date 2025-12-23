@@ -221,13 +221,7 @@ Key behaviors
 - `/superuser`: admin-level monitoring
 
 ### 5.2 Main Features
-- Live SSE updates
-- Intake form with metadata and speech capture
-- Case list and detail exploration
-- Sharing package generation
-- Federated ledger inspection
-- Heatmap visualization
-- Image analyzer
+- Live SSE updates with reconnection logic.\n- Intake form with metadata, tags, region hints, and optional speech capture.\n- Case list + drill-down with decision rationale and graph summary.\n- Sharing package generation with PII redaction controls.\n- Federated ledger inspection and validation tools.\n- Heatmap visualization for geo risk.\n- Image analyzer for AI and safety signals.
 
 ### 5.3 Key Components
 - `IntakeForm`: structured input + region hints + speech capture
@@ -309,6 +303,10 @@ Errors
 ### 6.2 GET /api/v1/cases/{intake_id}
 Returns stored case with full breakdown.
 
+Notes
+- `graph_summary` is generated from the current in-memory graph state.
+- Used by the UI to hydrate detail panels after SSE events.
+
 ---
 
 ### 6.3 POST /api/v1/share
@@ -359,6 +357,13 @@ SSE stream with events:
 data: {"type":"analysis_completed","intake_id":"uuid","score":0.7}
 ```
 
+Event fields
+- type: event name (`analysis_completed`).
+- intake_id: case identifier.
+- score: composite score.
+- classification: bucket label.
+- submitted_at: ISO timestamp.
+
 ---
 
 ### 6.5 Federated Endpoints
@@ -371,10 +376,51 @@ data: {"type":"analysis_completed","intake_id":"uuid","score":0.7}
 - `POST /api/v1/federated/sync_chain`
 - `GET /api/v1/federated/decrypt_block/{index}`
 
+Typical use
+- `validate_local`: quick integrity check for a node.
+- `validate`: network-wide consensus scan.
+- `sync_chain`: recovery from tampering or drift.
+- `decrypt_block`: admin-only inspection of encrypted payloads.
+
 ---
 
 ### 6.6 Image Analysis
 `POST /api/v1/image/analyze` with multipart form data.
+
+Request fields
+- `file`: image file.
+- `models`: comma-separated model list (e.g., genai, violence, gore-2.0).
+
+Behavior
+- Backend forwards image and parameters to Sightengine API.
+- UI renders confidence values and risk-level labels.
+
+Common model flags
+- genai, violence, gore-2.0, offensive-2.0, self-harm, text-content, qr-content, properties.
+
+---
+
+### 6.7 Threat Intel Feed
+`GET /api/v1/integrations/threat-intel`
+
+Purpose
+- Returns a normalized threat intel feed derived from graph summaries.
+
+Response highlights
+- `graph_summary`: same structure as case summaries.
+- `indicators`: aggregated IOC list from high-risk actors, clusters, and alerts.
+- `dataset_fingerprint`: SHA1 of the summary payload for deduplication.
+
+---
+
+### 6.8 SIEM Correlation Payload
+`GET /api/v1/integrations/siem`
+
+Purpose
+- Returns correlation keys and alert signals designed for SIEM pipelines.
+
+Response highlights
+- `alerts`: coordination alerts with risk scores.\n- `propagation_chains`: potential spread paths.\n- `correlation_keys`: identifiers for clustering downstream.
 
 ---
 
