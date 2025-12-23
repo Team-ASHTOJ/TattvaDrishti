@@ -1,21 +1,28 @@
 # Frontend Module Overview (frontend/)
 
-Purpose
-- Deliver analyst-focused dashboards for narrative intake, triage, and federated intelligence monitoring.
+## Purpose
+Deliver analyst-grade dashboards for ingestion, triage, and federated intelligence monitoring.
 
-Key experiences
-- Main dashboard: intake form, case table, live events, and case detail.
-- Simple dashboard: reduced-friction intake and summary view.
-- Superuser dashboard: blockchain control, heatmaps, and system monitoring.
+## Experiences
+- Main dashboard: full analysis workflow with sharing and detailed case views.
+- Simple dashboard: lightweight interface for quick checks.
+- Superuser dashboard: federation, heatmaps, and monitoring.
 
-Feature highlights
-- Real-time updates via SSE.
-- Rich visualizations: risk dials, radar charts, hop trace maps, and heatmaps.
-- Image analyzer for AI/gore/offensive detection.
-- Theme toggles and tailored UI surfaces for different roles.
+## Data Flow
+- Intake submitted to the API.
+- SSE stream hydrates live events and case list.
+- Case detail fetches per-intake data.
+- Sharing package requests push to federated nodes.
 
-Libraries used
+## Feature Highlights
+- Multi-signal risk visualizations (radar, dial, cards).
+- Live event stream and auto-reconnect behavior.
+- Federated ledger inspection with node selection.
+- Heatmap visualization for regional risk.
+- Image analysis with configurable signal toggles.
+
+## Dependencies
 - next, react
 - tailwindcss
-- leaflet + leaflet.heat
-- swr (available for data fetching patterns)
+- leaflet, leaflet.heat
+- swr

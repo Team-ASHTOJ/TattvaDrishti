@@ -1,17 +1,31 @@
 # Frontend App Router Overview (frontend/app/)
 
-Purpose
-- Next.js App Router entry points and page-level layouts.
+## Purpose
+Define user-facing routes and page-level layouts using the Next.js App Router.
 
-Pages
-- page.js: primary analyst dashboard with intake, events, cases, and sharing.
-- simple/page.js: simplified intake flow with lighter UI and focused metrics.
-- superuser/page.js: admin-level console for federation, heatmaps, and monitoring.
+## Pages
+- page.js: advanced analyst dashboard
+  - intake submission
+  - case table + case detail
+  - sharing package generation
+  - live SSE events
+  - charts and risk visuals
 
-Supporting files
-- layout.js: root shell and metadata.
-- globals.css: base styles and Tailwind layers.
+- simple/page.js: guided quick-check dashboard
+  - simplified intake and metrics
+  - case hydration via SSE
+  - reduced visual density
 
-Notable design traits
-- Multiple UI tiers to demonstrate role-based UX thinking.
-- Real-time resilience with reconnect logic for the event stream.
+- superuser/page.js: admin console
+  - federated blockchain control
+  - global heatmap visualization
+  - network topology view
+
+## Layout and Styling
+- layout.js: root metadata and global shell
+- globals.css: base Tailwind layers and custom classes
+
+## UX Principles
+- Multiple tiers of complexity to serve different roles.
+- Live data first, with resilient reconnect logic.
+- Visual hierarchy optimized for at-a-glance decisions.
