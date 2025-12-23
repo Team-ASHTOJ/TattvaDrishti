@@ -74,6 +74,8 @@ Behavior details
 - Requires region metadata for heatmap logging.
 - Uses role-based access check for intake and dashboard retrieval.
 - Streams events via `StreamingResponse` and SSE format.
+- Enables permissive CORS for local development.
+- Initializes orchestrator, storage, and federated ledger at startup.
 
 ---
 
@@ -84,10 +86,11 @@ Key settings
 - `APP_ENV`: dev/prod (dev bypasses auth).
 - `APP_SECRET`: package signing secret.
 - `DATABASE_URL`: SQLite connection string.
+- `allowed_origins`: CORS allowlist (defaults to `*`).
 
 AI settings
 - `HF_MODEL_NAME`, `HF_TOKENIZER_NAME`, `HF_DEVICE`, `HF_SCORE_THRESHOLD`.
-- `OLLAMA_ENABLED`, `OLLAMA_MODEL`, `OLLAMA_HOST`, `OLLAMA_TIMEOUT`.
+- `OLLAMA_ENABLED`, `OLLAMA_MODEL`, `OLLAMA_HOST`, `OLLAMA_TIMEOUT`, `OLLAMA_PROMPT_CHARS`.
 
 Federation
 - `BLOCK_ENCRYPTION_KEY`, `FEDERATED_NODES`, `NODE_URL`.
@@ -101,7 +104,8 @@ Image moderation
 Pydantic models for input/output.
 
 Core models
-- `ContentIntake`: text, language, source, metadata, tags.
+- `ContentIntake`: text (min 20 chars), language, source, metadata, tags.
+- `SourceMetadata`: platform, region, actor_id, related_urls.
 - `DetectionBreakdown`: stylometrics, heuristics, AI signals.
 - `DetectionResult`: full output for API and UI.
 - `GraphSummary`, `GNNCluster`, `CoordinationAlert`, `PropagationChain`.
@@ -113,19 +117,32 @@ Core models
 Stylometric + heuristic detection engine that blends linguistic statistics, behavioral cues, and AI inference into a composite risk score.
 
 Feature extraction (linguistic)
-- MATTR lexical diversity (windowed type-token ratio).\n- Sentence length variance for cadence irregularities.\n- Token burstiness and repetition rate for templated phrasing.\n- Character entropy for predictability signals.\n- Punctuation variety and uppercase ratio.\n- Vocabulary richness proxy (HHI-style concentration).
+- MATTR lexical diversity (windowed type-token ratio).
+- Sentence length variance for cadence irregularities.
+- Token burstiness and repetition rate for templated phrasing.
+- Character entropy for predictability signals.
+- Punctuation variety and uppercase ratio.
+- Vocabulary richness proxy (HHI-style concentration).
 
 Behavioral heuristics
-- Urgency and CTA detection (regex-based patterns).\n- Emotional manipulation indicators via valence words.\n- High-risk platform boosts (e.g., anonymized/telegram).\n- Tag-based risk boosts (e.g., extremism, disinfo-campaign).
+- Urgency and CTA detection (regex-based patterns).
+- Emotional manipulation indicators via valence words.
+- High-risk platform boosts (e.g., anonymized/telegram).
+- Tag-based risk boosts (e.g., extremism, disinfo-campaign).
 
 AI fusion
-- Hugging Face AI detector + optional model-family attribution.\n- Optional Ollama semantic risk scoring for qualitative context.\n- Weighted blending with sigmoid-normalized stylometric score.
+- Hugging Face AI detector + optional model-family attribution.
+- Optional Ollama semantic risk scoring for qualitative context.
+- Weighted blending with sigmoid-normalized stylometric score.
 
 Classification logic
-- Composite score mapped to `low-risk`, `medium-risk`, `high-risk` buckets.\n- Decision rationale generated from dominant heuristics and AI confidence.
+- Composite score mapped to `low-risk`, `medium-risk`, `high-risk` buckets.
+- Decision rationale generated from dominant heuristics and AI confidence.
 
 Outputs
-- Composite score (0-1).\n- Classification bucket.\n- DetectionBreakdown with anomalies, heuristics, and optional AI signals.
+- Composite score (0-1).
+- Classification bucket.
+- DetectionBreakdown with anomalies, heuristics, and optional AI signals.
 
 ---
 
@@ -133,13 +150,24 @@ Outputs
 Hugging Face inference pipeline.
 
 Primary models
-- AI vs Human detector: DeBERTa v3 base + LoRA adapter.\n  - Adapter repo: `ShoaibSSM/ai_vs_human_detector_deberta_v3_lora`.\n  - Default checkpoint: `checkpoint-68090`.\n  - Base model pulled dynamically from adapter config.\n- Model family classifier: `XOmar/model_family_detector_deberta_v3_balanced`.\n  - Used to attribute likely model family when AI text is detected.
+- AI vs Human detector: DeBERTa v3 base + LoRA adapter.
+  - Adapter repo: `ShoaibSSM/ai_vs_human_detector_deberta_v3_lora`.
+  - Default checkpoint: `checkpoint-68090`.
+  - Base model pulled dynamically from adapter config.
+- Model family classifier: `XOmar/model_family_detector_deberta_v3_balanced`.
+  - Used to attribute likely model family when AI text is detected.
 
 Loading behavior
-- Adapter-aware loading with checkpoint subfolder resolution.\n  - If `/checkpoint-*` is present, resolves repo + subfolder.\n  - Falls back to parent repo if config not found in subfolder.\n- Tokenizer loading prioritizes adapter repo; falls back to base model tokenizer.\n- Automatic device selection (CUDA if available, else CPU).\n- `DISABLE_AI_MODELS=true` skips all model loading for deterministic tests or lighter nodes.
+- Adapter-aware loading with checkpoint subfolder resolution.
+  - If `/checkpoint-*` is present, resolves repo + subfolder.
+  - Falls back to parent repo if config not found in subfolder.
+- Tokenizer loading prioritizes adapter repo; falls back to base model tokenizer.
+- Automatic device selection (CUDA if available, else CPU).
+- `DISABLE_AI_MODELS=true` skips all model loading for deterministic tests or lighter nodes.
 
 Inference outputs
-- `ai_probability`, `human_probability`, `is_ai`, `verdict`.\n- `model_family`, `model_family_confidence`, and full family probabilities if available.
+- `ai_probability`, `human_probability`, `is_ai`, `verdict`.
+- `model_family`, `model_family_confidence`, and full family probabilities if available.
 
 ---
 
@@ -157,10 +185,20 @@ Features
 Graph intelligence engine that builds an interaction graph for actors, content, narratives, and regions to surface coordination and propagation risk.
 
 Core features
-- Adds nodes for content, actors, narratives, and regions.\n- Tracks per-actor score history and averages.\n- Builds edges for publication, targeting, and origin relations.\n- Uses optional torch tensors for a GNN-like score projection.\n- Summarizes:\n  - High-risk actors\n  - Communities\n  - GNN clusters\n  - Coordination alerts\n  - Propagation chains
+- Adds nodes for content, actors, narratives, and regions.
+- Tracks per-actor score history and averages.
+- Builds edges for publication, targeting, and origin relations.
+- Uses optional torch tensors for a GNN-like score projection.
+- Summarizes:
+  - High-risk actors
+  - Communities
+  - GNN clusters
+  - Coordination alerts
+  - Propagation chains
 
 Outputs
-- `GraphSummary` for UI.\n- `ThreatIntelFeed` and `SIEMCorrelationPayload` for integrations.
+- `GraphSummary` for UI.
+- `ThreatIntelFeed` and `SIEMCorrelationPayload` for integrations.
 
 ---
 
@@ -168,7 +206,10 @@ Outputs
 Provenance checks for watermark and signature validation.
 
 Features
-- Regex-based watermark and signature detection.\n- Probabilistic watermark fingerprint when missing.\n- Time-based signature validation using a rotating daily hash.\n- Returns validation notes to preserve analyst context.
+- Regex-based watermark and signature detection.
+- Probabilistic watermark fingerprint when missing.
+- Time-based signature validation using a rotating daily hash.
+- Returns validation notes to preserve analyst context.
 
 ---
 
@@ -176,7 +217,10 @@ Features
 Sharing package engine that builds secure, auditable bundles for federated exchange.
 
 Features
-- Signed JSON envelope using `APP_SECRET`.\n- Policy tags: privacy redaction + export-control markers.\n- Multi-hop route simulation with latency and provider metadata.\n- Stable package IDs and timestamped creation metadata.
+- Signed JSON envelope using `APP_SECRET`.
+- Policy tags: privacy redaction + export-control markers.
+- Multi-hop route simulation with latency and provider metadata.
+- Stable package IDs and timestamped creation metadata.
 
 ---
 
@@ -184,10 +228,18 @@ Features
 Pipeline orchestrator that connects detection, provenance, graph intel, storage, and federation.
 
 Stages
-1. Generate intake id and timestamp.\n2. Run detection and behavioral heuristics.\n3. Run provenance and watermark checks.\n4. Ingest into graph intelligence.\n5. Persist case, audit, and fingerprint records.\n6. Emit SSE event for dashboards.
+1. Generate intake id and timestamp.
+2. Run detection and behavioral heuristics.
+3. Run provenance and watermark checks.
+4. Ingest into graph intelligence.
+5. Persist case, audit, and fingerprint records.
+6. Emit SSE event for dashboards.
 
 Sharing workflow
-- Fetches case data locally or from a main node.\n- Applies policy tags and redaction rules.\n- Builds hop trace and signs package.\n- Optionally publishes a ledger block to destination node.
+- Fetches case data locally or from a main node.
+- Applies policy tags and redaction rules.
+- Builds hop trace and signs package.
+- Optionally publishes a ledger block to destination node.
 
 ---
 
@@ -195,10 +247,14 @@ Sharing workflow
 SQLite persistence layer for cases, audit logs, and fingerprints.
 
 Tables
-- `cases`: full analysis output (classification, composite, breakdown, provenance).\n- `audit_log`: append-only action log.\n- `fingerprints`: normalized hashes for re-identification.
+- `cases`: full analysis output (classification, composite, breakdown, provenance).
+- `audit_log`: append-only action log.
+- `fingerprints`: normalized hashes for re-identification.
 
 Behavior
-- Auto-initialize tables and add missing columns.\n- Inserts or replaces cases by intake id.\n- Normalized hashing for fuzzy matching.
+- Auto-initialize tables and add missing columns.
+- Inserts or replaces cases by intake id.
+- Normalized hashing for fuzzy matching.
 
 ---
 
@@ -206,10 +262,16 @@ Behavior
 Federated ledger subsystem for tamper-evident intelligence sharing.
 
 Components
-- `ledger.py`: block structure with canonical payload serialization.\n- `manager.py`: chain storage, validation, and reset.\n- `node.py`: peer discovery and block broadcast.\n- `crypto.py`: Fernet encryption + Ed25519 signing and verification.
+- `ledger.py`: block structure with canonical payload serialization.
+- `manager.py`: chain storage, validation, and reset.
+- `node.py`: peer discovery and block broadcast.
+- `crypto.py`: Fernet encryption + Ed25519 signing and verification.
 
 Key behaviors
-- Genesis block creation on first run.\n- Validation checks: previous hash, hash integrity, signature verification.\n- Peer broadcast for replication.\n- Chain sync from the longest valid peer chain.
+- Genesis block creation on first run.
+- Validation checks: previous hash, hash integrity, signature verification.
+- Peer broadcast for replication.
+- Chain sync from the longest valid peer chain.
 
 ---
 
@@ -221,7 +283,13 @@ Key behaviors
 - `/superuser`: admin-level monitoring
 
 ### 5.2 Main Features
-- Live SSE updates with reconnection logic.\n- Intake form with metadata, tags, region hints, and optional speech capture.\n- Case list + drill-down with decision rationale and graph summary.\n- Sharing package generation with PII redaction controls.\n- Federated ledger inspection and validation tools.\n- Heatmap visualization for geo risk.\n- Image analyzer for AI and safety signals.
+- Live SSE updates with reconnection logic.
+- Intake form with metadata, tags, region hints, and optional speech capture.
+- Case list + drill-down with decision rationale and graph summary.
+- Sharing package generation with PII redaction controls.
+- Federated ledger inspection and validation tools.
+- Heatmap visualization for geo risk.
+- Image analyzer for AI and safety signals.
 
 ### 5.3 Key Components
 - `IntakeForm`: structured input + region hints + speech capture
@@ -236,6 +304,19 @@ Key behaviors
 ### 5.4 Frontend API Layer
 - `submitIntake`, `fetchCase`, `requestSharingPackage`, `createEventStream`
 - Environment variables for API/node URLs
+
+Behavior notes
+- `createEventStream` uses `EventSource` and reconnect logic in pages.
+- Case hydration occurs after SSE events to fetch full breakdowns.
+- Sharing always targets the main API so it can access stored cases.
+
+---
+
+### 5.5 UX Design Intent
+- Analyst-first workflows: quick risk readouts, deep drill-down on demand.
+- Progressive disclosure: summary metrics first, detailed panels second.
+- Live feedback: SSE updates, toasts, and status indicators.
+- Multi-role views: simplified vs superuser surfaces show capability breadth.
 
 ---
 
@@ -420,7 +501,46 @@ Purpose
 - Returns correlation keys and alert signals designed for SIEM pipelines.
 
 Response highlights
-- `alerts`: coordination alerts with risk scores.\n- `propagation_chains`: potential spread paths.\n- `correlation_keys`: identifiers for clustering downstream.
+- `alerts`: coordination alerts with risk scores.
+- `propagation_chains`: potential spread paths.
+- `correlation_keys`: identifiers for clustering downstream.
+
+---
+
+### 6.9 Heatmap API
+Endpoints
+- `POST /api/v1/heatmap/add-risk-point`
+- `GET /api/v1/heatmap/grid`
+
+Purpose
+- Persist regional risk points for geographic visualization.
+
+Request (add-risk-point)
+```json
+{
+  "region_name": "Mumbai",
+  "final_risk_score": 72
+}
+```
+
+Response (grid)
+```json
+{
+  "points": [
+    {
+      "region_name": "Mumbai",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "final_risk_score": 72,
+      "timestamp": "2025-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+Notes
+- Region names must exist in the backend region map.
+- Points are persisted to `data/heatmap_points.json`.
 
 ---
 
@@ -462,34 +582,32 @@ Response highlights
 - signature
 - public_key
 
+Schema notes
+- `cases.intake_id` is the natural primary key for all related tables.
+- `audit_log` is append-only for traceability.
+- `fingerprints` enable exact and normalized hash matches.
+- Ledger uses `idx` as the block index and ordering key.
+
 ---
 
 ## 8. Environment Variables Reference
 
 Backend
-- APP_ENV
-- APP_SECRET
-- DATABASE_URL
-- HF_MODEL_NAME
-- HF_TOKENIZER_NAME
-- HF_DEVICE
-- HF_SCORE_THRESHOLD
-- OLLAMA_ENABLED
-- OLLAMA_MODEL
-- OLLAMA_HOST
-- OLLAMA_TIMEOUT
-- BLOCK_ENCRYPTION_KEY
-- FEDERATED_NODES
-- NODE_URL
-- SIGHTENGINE_API_USER
-- SIGHTENGINE_API_SECRET
+- APP_ENV (dev/prod behavior)
+- APP_SECRET (sharing package signature seed)
+- DATABASE_URL (SQLite path)
+- HF_MODEL_NAME / HF_TOKENIZER_NAME (HF model override)
+- HF_DEVICE (CPU or GPU id)
+- HF_SCORE_THRESHOLD (AI detector cutoff)
+- OLLAMA_ENABLED / OLLAMA_MODEL / OLLAMA_HOST / OLLAMA_TIMEOUT
+- BLOCK_ENCRYPTION_KEY (Fernet key shared by nodes)
+- FEDERATED_NODES (comma-separated node list)
+- NODE_URL (this node's URL)
+- SIGHTENGINE_API_USER / SIGHTENGINE_API_SECRET
 
 Frontend
-- NEXT_PUBLIC_API_BASE_URL
-- NEXT_PUBLIC_NODE1_URL
-- NEXT_PUBLIC_NODE2_URL
-- NEXT_PUBLIC_NODE3_URL
-- NEXT_PUBLIC_NODE4_URL
+- NEXT_PUBLIC_API_BASE_URL (backend base URL)
+- NEXT_PUBLIC_NODE1_URL..NEXT_PUBLIC_NODE4_URL (federated node URLs)
 
 ---
 
@@ -509,6 +627,13 @@ npm install
 npm run dev
 ```
 
+Optional local setup
+- Create `.env` for backend settings (DB path, HF/Ollama toggles).
+- Create `frontend/.env.local` for API base URL.
+- Start Ollama if semantic risk is enabled:
+  - `ollama serve`
+  - `ollama pull llama3.2:3b`
+
 ### 9.2 Multi-node Federation
 ```bash
 docker-compose up --build
@@ -522,9 +647,11 @@ pytest
 ---
 
 ## 10. Constraints and Tradeoffs
-- SQLite chosen for portability; not optimized for scale.
-- Optional AI integrations require large models and GPU for speed.
-- Federated ledger is a lightweight simulation, not a full consensus blockchain.
+- SQLite chosen for portability; not optimized for high concurrency or large datasets.
+- Optional AI integrations require large model downloads and GPU for speed.
+- Ollama semantic scoring depends on a local LLM runtime.
+- Federated ledger is a lightweight simulation without economic consensus.
+- Heatmap requires region-to-coordinates mapping to be populated.
 
 ---
 
