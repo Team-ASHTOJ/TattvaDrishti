@@ -141,11 +141,14 @@ Outputs
 ### 4.5 app/integrations/hf_detector.py
 Hugging Face inference pipeline.
 
-Features
-- LoRA adapter loading for AI vs Human detection.
-- Optional model family classifier.
-- Automatic device selection (CUDA if available).
-- `DISABLE_AI_MODELS` for test mode.
+Primary models
+- AI vs Human detector: DeBERTa v3 base + LoRA adapter.\n  - Adapter repo: `ShoaibSSM/ai_vs_human_detector_deberta_v3_lora`.\n  - Default checkpoint: `checkpoint-68090`.\n  - Base model pulled dynamically from adapter config.\n- Model family classifier: `XOmar/model_family_detector_deberta_v3_balanced`.\n  - Used to attribute likely model family when AI text is detected.
+
+Loading behavior
+- Adapter-aware loading with checkpoint subfolder resolution.\n  - If `/checkpoint-*` is present, resolves repo + subfolder.\n  - Falls back to parent repo if config not found in subfolder.\n- Tokenizer loading prioritizes adapter repo; falls back to base model tokenizer.\n- Automatic device selection (CUDA if available, else CPU).\n- `DISABLE_AI_MODELS=true` skips all model loading for deterministic tests or lighter nodes.
+
+Inference outputs
+- `ai_probability`, `human_probability`, `is_ai`, `verdict`.\n- `model_family`, `model_family_confidence`, and full family probabilities if available.
 
 ---
 
@@ -539,4 +542,3 @@ Docs
 - docs/FEDERATED_BLOCKCHAIN.md
 - docs/OLLAMA_SETUP.md
 - docs/OLLAMA_INTEGRATION.md
-
