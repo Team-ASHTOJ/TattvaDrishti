@@ -30,6 +30,6 @@ pytest==7.4.4
 # Server-Sent Events for real-time updates
 sse-starlette==1.6.5
 
-
+# For auto commit
 GitPython
 watchdog
