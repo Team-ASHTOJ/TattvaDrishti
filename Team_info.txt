@@ -1,0 +1,45 @@
+Team Name: ASHTOJ
+Institute: Keshav Memorial Institute of Technology
+
+Team Members and Roles:
+
+1. Shaik Mohammed Omar – Team Lead, Backend & AI Systems
+   - Led the overall project vision, system architecture, and execution.
+   - Designed and implemented the backend services and APIs.
+   - Built, trained, and integrated the AI/ML models for attribution and detection.
+   - Implemented forensic techniques, blockchain-based audit trails, and ledger integration.
+   - Rapidly added and refined features based on judge feedback during evaluations.
+   - Coordinated across all modules to ensure end-to-end system coherence.
+
+2. Shoaib – Core Developer, Backend & AI Systems
+   - Worked extensively alongside the team lead on backend development.
+   - Contributed to AI/ML model integration, system logic, and feature implementation.
+   - Assisted in debugging, optimization, and rapid iteration under time constraints.
+   - Played a key role in ensuring system stability and completeness.
+
+3. Tanishq – Blockchain & Infrastructure Lead
+   - Solely responsible for blockchain design, node setup, and ledger implementation.
+   - Developed and maintained decentralized components for audit trails and verification.
+   - Acted as Git manager for the team, handling pull requests, merges, and conflict resolution.
+   - Ensured repository integrity and smooth collaboration workflow.
+
+4. Anirudha – Image Moderation & Presentation
+   - Implemented image moderation components of the system.
+   - Took ownership of presentations and explanations during evaluations.
+   - Known for delivering clear, confident, and structured presentations.
+
+5. Hansika – UI/UX Design & Visual Assets
+   - Worked on UI/UX design concepts and visual layout ideas.
+   - Assisted in creating presentation materials and design elements.
+   - Focused on improving the visual appeal and usability of the interface.
+
+6. Jinal – UI/UX Design & Documentation Support
+   - Contributed to UI/UX design and interface structuring.
+   - Assisted with presentation slides and design-related documentation.
+   - Supported overall project aesthetics and clarity.
+
+Summary:
+ASHTOJ functioned as a tightly coordinated team, with strong technical ownership 
+in backend, AI/ML, and blockchain systems, supported by focused contributions in infrastructure, presentation,
+ and design. The project was developed iteratively under real-world constraints, with rapid adaptation to feedback and 
+ an emphasis on robustness, privacy, and explainability.
